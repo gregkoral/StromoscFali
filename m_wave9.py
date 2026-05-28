@@ -205,8 +205,20 @@ if col_f3.button("+0.1m", use_container_width=True):
 
 
 
-# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
+# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (ZOPTYMALIZOWANA GĘSTOŚĆ)
 col_map1, col_map2 = st.columns(2)
+
+# Definiujemy krok próbkowania danych dla małych mapek (np. co 3 lub co 4 piksel)
+# Im większa liczba, tym szybsze renderowanie dolnych wykresów
+skok_dol = 3  
+
+# Przycinamy tablice dwuwymiarowe (oraz osie) dla dolnych wykresów
+# Jeśli Twoje lons_raw/lats_raw są 1D, używamy pcolormesh na odchudzonych danych:
+lons_sub_dol = lons_raw[::skok_dol]
+lats_sub_dol = lats_raw[::skok_dol]
+h_signif_sub = h_signif[::skok_dol, ::skok_dol]
+t_mean_sub = t_mean[::skok_dol, ::skok_dol]
+land_mask_sub = land_mask[::skok_dol, ::skok_dol]
 
 with col_map1:
     fig2, ax2 = plt.subplots(figsize=(4, 4))
@@ -216,8 +228,9 @@ with col_map1:
     ax2.set_xlim(MIN_LON, MAX_LON)
     ax2.set_ylim(MIN_LAT, MAX_LAT)
     
-    ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-    im2 = ax2.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
+    # Rysujemy na odchudzonych danych (_sub)
+    ax2.pcolormesh(lons_sub_dol, lats_sub_dol, land_mask_sub, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+    im2 = ax2.pcolormesh(lons_sub_dol, lats_sub_dol, h_signif_sub, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
     fig2.colorbar(im2, ax=ax2, label='', pad=0.02)
     ax2.set_title("Wysokość fali (VHM0)", fontsize=10)
     plt.tight_layout()
@@ -231,8 +244,9 @@ with col_map2:
     ax3.set_xlim(MIN_LON, MAX_LON)
     ax3.set_ylim(MIN_LAT, MAX_LAT)
     
-    ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-    im3 = ax3.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
+    # Rysujemy na odchudzonych danych (_sub)
+    ax3.pcolormesh(lons_sub_dol, lats_sub_dol, land_mask_sub, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+    im3 = ax3.pcolormesh(lons_sub_dol, lats_sub_dol, t_mean_sub, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
     fig3.colorbar(im3, ax=ax3, label='', pad=0.02)
     ax3.set_title("Okres fali (VTM02)", fontsize=10)
     plt.tight_layout()
