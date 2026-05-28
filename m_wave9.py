@@ -106,14 +106,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- DELIKATNY PODTYTUŁ NAD MAPĄ ---
-st.markdown(
-    f"<p style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
-    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
-    f"</p>", 
-    unsafe_allow_html=True
-)
-
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
@@ -166,6 +158,13 @@ except:
 ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12, pad=10)
 plt.tight_layout()
 st.pyplot(fig1)
+
+st.markdown(
+    f"<p style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
+    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr: > {st.session_state.prog_filtra:.1f}m"
+    f"</p>", 
+    unsafe_allow_html=True
+)
 
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
