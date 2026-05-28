@@ -225,4 +225,4 @@ with col_map2:
     fig3.colorbar(im3, ax=ax3, label='', pad=0.02)
     ax3.set_title("Okres fali (VTM02)", fontsize=10)
     plt.tight_layout()
-    st.pyplot(fig3)
+    st.pyplot(fig3)"""
