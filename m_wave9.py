@@ -210,7 +210,7 @@ col_map1, col_map2 = st.columns(2)
 
 # Definiujemy krok próbkowania danych dla małych mapek (np. co 3 lub co 4 piksel)
 # Im większa liczba, tym szybsze renderowanie dolnych wykresów
-skok_dol = 3  
+skok_dol = 2  
 
 # Przycinamy tablice dwuwymiarowe (oraz osie) dla dolnych wykresów
 # Jeśli Twoje lons_raw/lats_raw są 1D, używamy pcolormesh na odchudzonych danych:
