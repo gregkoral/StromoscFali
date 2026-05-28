@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, UTC
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
-MIN_LON, MAX_LON = 12.0, 1.0
+MIN_LON, MAX_LON = 12.0, 15.0
 MIN_LAT, MAX_LAT = 53.0, 56.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
@@ -122,41 +122,57 @@ st.pyplot(fig1)
 
 #st.write("---")
 
-# --- CSS BLOKUJĄCE ZAWIJANIE KOLUMN NA TELEFONACH ---
+# --- CSS WYMUSZAJĄCE ZWĘŻANIE PRZYCISKÓW I BRAK ZAWIJANIA ---
 st.markdown(
     """
     <style>
+    /* Blokowanie zawijania kolumn do nowej linii */
     [data-testid="stHorizontalBlock"] {
         flex-wrap: nowrap !important;
-        gap: 8px !important;
+        gap: 4px !important; /* Minimalny odstęp między kolumnami */
+    }
+    
+    /* Wymuszenie na przyciskach, by dopasowywały się do dostępnej szerokości */
+    [data-testid="stHorizontalBlock"] .stButton {
+        width: 100% !important;
+    }
+    
+    /* Radykalne zmniejszenie wewnętrznych marginesów przycisków, by mogły się zwężać */
+    [data-testid="stHorizontalBlock"] button {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        font-size: 13px !important; /* Nieco mniejsza czcionka, żeby napisy się zmieściły */
+        white-space: nowrap !important; /* Blokowanie zawijania tekstu wewnątrz przycisku */
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# 2. PANEL STEROWANIA (Wszystkie przyciski po 3 w linii - zablokowane zawijanie)
+# 2. PANEL STEROWANIA (Elastyczne przyciski, zawsze 3 w linii)
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
-if col_t1.button("-1h", use_container_width=True):
+if col_t1.button("⬅️ -1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
-if col_t2.button("Teraz", use_container_width=True):
+if col_t2.button("Teraz UTC", use_container_width=True):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-if col_t3.button("+1h️", use_container_width=True):
+if col_t3.button("+1h ➡️", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
 st.write("**Sterowanie filtrem wysokości fali:**")
 col_f1, col_f2, col_f3 = st.columns(3)
-if col_f1.button("-0.1m", use_container_width=True):
+if col_f1.button("➖ -0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
-if col_f2.button("Reset", use_container_width=True):
+if col_f2.button("🔄 Reset", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
-if col_f3.button("+0.1m", use_container_width=True):
+if col_f3.button("+0.1m ➕", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
