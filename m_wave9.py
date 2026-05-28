@@ -160,9 +160,9 @@ plt.tight_layout()
 st.pyplot(fig1)
 
 st.markdown(
-    f"<h4 style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
+    f"<p style='text-align: center; color: #888888; font-size: 20px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
     f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr: > {st.session_state.prog_filtra:.1f}m"
-    f"</h4>", 
+    f"</p>", 
     unsafe_allow_html=True
 )
 
