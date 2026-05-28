@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-# --- AUTOMATYCZNA INSTALACJA BIBLIOTEK ----
+# --- AUTOMATYCZNA INSTALACJA BIBLIOTEK ---
 wymagane_biblioteki = {
     "streamlit": "streamlit",
     "copernicusmarine": "copernicusmarine",
@@ -39,23 +39,26 @@ MIN_LAT, MAX_LAT = 53.0, 56.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # --- CACHOWANIE DANYCH W RAMIE SERWERA ---
+# Zmieniamy cache na 'run', a z open_dataset USUWAMY końcówkę .load()
 @st.cache_data(show_spinner=False)
-def pobierz_paczke_danych(start_str, end_str):
+def pobierz_paczke_danych(start_str, end_str, wybrany_czas):
     try:
-        # Pobieramy sekrety ze Streamlit Cloud i przekazujemy bezpośrednio do funkcji login
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
         copernicusmarine.login(username=username, password=password, skip_if_logged=True)
-    except Exception as e:
-        # Jeśli testujesz lokalnie i nie masz st.secrets, przejdzie bez błędu
+    except Exception:
         pass
     
+    # Otwieramy dataset jako lekki wskaźnik (bez .load())
     ds = copernicusmarine.open_dataset(
         dataset_id=DATASET_ID, start_datetime=start_str, end_datetime=end_str,
         minimum_longitude=MIN_LON, maximum_longitude=MAX_LON,
         minimum_latitude=MIN_LAT, maximum_latitude=MAX_LAT
-    ).load()
-    return ds
+    )
+    
+    # Wycinamy interesującą nas godzinę ZANIM załadujemy dane do pamięci
+    wave_slice = ds.sel(time=wybrany_czas, method='nearest').load()
+    return wave_slice
 
 # --- PASEK BOCZNY / INTERFEJS STEROWANIA ---
 st.sidebar.title("Sterowanie prognozą")
@@ -94,8 +97,8 @@ end_str = cache_end.strftime("%Y-%m-%d %H:%M:%S")
 
 with st.spinner("Pobieranie/Ładowanie danych z Copernicus Marine..."):
     try:
-        cached_dataset = pobierz_paczke_danych(start_str, end_str)
-        wave_slice = cached_dataset.sel(time=wybrany_czas, method='nearest')
+        # Przekazujemy wybrany_czas bezpośrednio do funkcji, która zwróci lekki wycinek
+        wave_slice = pobierz_paczke_danych(start_str, end_str, wybrany_czas)
         
         h_signif_raw = wave_slice['VHM0']
         t_mean_raw = wave_slice['VTM02']
