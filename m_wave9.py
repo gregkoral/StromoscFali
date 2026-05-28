@@ -88,7 +88,7 @@ cmap_vtm02 = plt.cm.plasma
 # --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 st.title("🌊 Prognoza Fal Bałtyku")
 # Aktualna wartość filtra przeniesiona do czytelnego podtytułu
-st.subheader(f"Czas: {wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m")
+st.subheader(f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m")
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 6))
@@ -113,7 +113,7 @@ ax1.set_title("STROMOŚĆ FALI + KIERUNEK", fontsize=12, fontweight='bold')
 plt.tight_layout()
 st.pyplot(fig1)
 
-st.write("---")
+#st.write("---")
 
 # 2. PANEL STEROWANIA (PRZYCISKI TEJ SAMEJ SZEROKOŚCI)
 st.write("**Sterowanie czasem:**")
@@ -145,7 +145,7 @@ if col_f3.button("+0.1m ➕", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-st.write("---")
+#st.write("---")
 
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (BEZ WSPÓŁRZĘDNYCH GEO)
 st.write("**Szczegóły składowe:**")
