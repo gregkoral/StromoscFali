@@ -12,7 +12,7 @@ st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 # POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
 MIN_LON, MAX_LON = 11.0, 15.0
-MIN_LAT, MAX_LAT = 53.0, 57.0
+MIN_LAT, MAX_LAT = 53.5, 56.5
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # Funkcja logowania
@@ -135,7 +135,7 @@ ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12)
 plt.tight_layout()
 st.pyplot(fig1)
 
-st.write("---")
+#st.write("---")
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
 # POPRAWKA: Usunięto agresywne CSS wymuszające stałą szerokość. Przyciski mogą się teraz normalnie zawijać.
@@ -170,7 +170,7 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-st.write("---")
+#st.write("---")
 
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 st.write("**Szczegóły składowe:**")
