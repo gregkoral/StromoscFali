@@ -167,53 +167,22 @@ st.markdown(
 )
 
 
-st.markdown("""
-<style>
+# --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
+col_t1, col_t2, col_t3 = st.columns(3)
 
-/* wymuszenie układu poziomego */
-div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 0.25rem;
-}
-
-/* kolumny */
-div[data-testid="column"] {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-}
-
-/* przyciski */
-div[data-testid="column"] button {
-    width: 100% !important;
-    white-space: nowrap;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# --- PANEL STEROWANIA ---
-st.write("**Sterowanie czasem**")
-
-col1, col2, col3 = st.columns(3)
-
-if col1.button("-1h", use_container_width=True):
+if col_t1.button("-1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 
-if col2.button("Teraz", use_container_width=True):
-    st.session_state.current_time = (
-        datetime.now(UTC)
-        .replace(minute=0, second=0, microsecond=0, tzinfo=None)
-    )
+if col_t2.button("Teraz", use_container_width=True):
+    st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
 
-if col3.button("+1h", use_container_width=True):
+if col_t3.button("+1h", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
 
-st.write("**Sterowanie filtrem wysokości fali**")
 col_f1, col_f2, col_f3 = st.columns(3)
 
 if col_f1.button("-0.1m", use_container_width=True):
