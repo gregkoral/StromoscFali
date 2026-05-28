@@ -126,19 +126,7 @@ st.pyplot(fig1)
 st.markdown(
     """
     <style>
-    /* Wymuszenie braku zawijania i równego rozkładu kolumn */
-    [data-testid="stHorizontalBlock"] {
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-        gap: 0 !important; /* Odstępy kontrolowane przez marginesy */
-    }
     
-    /* Każda z trzech kolumn dostaje sztywne ~31% szerokości ekranu */
-    [data-testid="stHorizontalBlock"] [data-testid="column"] {
-        width: 31% !important;
-        flex: 0 0 31% !important;
-        min-width: 31% !important;
-    }
     
     /* Pełna szerokość przycisku wewnątrz swojej kolumny */
     [data-testid="stHorizontalBlock"] .stButton {
