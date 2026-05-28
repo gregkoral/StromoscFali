@@ -12,7 +12,7 @@ st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 # POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
 MIN_LON, MAX_LON = 12.0, 15.0
-MIN_LAT, MAX_LAT = 53.0, 57.5
+MIN_LAT, MAX_LAT = 53.0, 57.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # Funkcja logowania
@@ -99,7 +99,7 @@ st.markdown(
 )
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
-fig1, ax1 = plt.subplots(figsize=(10, 6))
+fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
