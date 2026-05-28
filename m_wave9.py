@@ -85,12 +85,11 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 # --- WYCENTROWANE NAGŁÓWKI WWW ---
-#st.markdown(
-    #"<h2 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
-    #unsafe_allow_html=True
-#)
+st.markdown(
+    "<h1 style='text-align: center;'>🌊 Prognoza Fal Bałtyku</h1>", 
+    unsafe_allow_html=True
+)
 st.markdown(
     f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 20px;'>"
     f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
@@ -103,7 +102,6 @@ fig1, ax1 = plt.subplots(figsize=(10, 6))
 ax1.set_facecolor('#404040')
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
-# POPRAWKA: Usunięty podpis "Stromość fali" z bocznego gradientu (label='')
 fig1.colorbar(im1, ax=ax1, label='', pad=0.02, fraction=0.03)
 
 try:
@@ -117,52 +115,50 @@ try:
     ax1.quiver(lon_grid, lat_grid, u, v, color=kolor_strzalek, scale=25, width=0.0025, headwidth=6, headlength=5, pivot='middle', zorder=3)
 except:
     pass
-ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12)
+ax1.set_title("STROMOŚĆ FALI + KIERUNEK", fontsize=12, fontweight='bold')
 plt.tight_layout()
 st.pyplot(fig1)
 
-#st.write("---")
+st.write("---")
 
-# 2. PANEL STEROWANIA (PRZYCISKI TEJ SAMEJ SZEROKOŚCI)
+# 2. PANEL STEROWANIA (SZTYWNE TRZY KOLUMNY W JEDNEJ LINII)
 st.write("**Sterowanie czasem:**")
-col_t1, col_t2, col_t3 = st.columns(3)
-if col_t1.button("-1h", use_container_width=True):
+# gap="small" zapewnia, że przyciski nie rozjadą się na boki
+col_t1, col_t2, col_t3 = st.columns(3, gap="small")
+if col_t1.button("⬅️ -1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 if col_t2.button("Teraz UTC", use_container_width=True):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-if col_t3.button("+1h️", use_container_width=True):
+if col_t3.button("+1h ➡️", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
 st.write("**Sterowanie filtrem wysokości fali:**")
-# POPRAWKA: columns(3) zamiast nierównych proporcji daje identyczną szerokość przycisków
-col_f1, col_f2, col_f3 = st.columns(3)
+col_f1, col_f2, col_f3 = st.columns(3, gap="small")
 
-if col_f1.button("-0.1m", use_container_width=True):
+if col_f1.button("➖ -0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
 
-# POPRAWKA: Czysty przycisk "Reset" o równej szerokości
-if col_f2.button("Reset", use_container_width=True):
+if col_f2.button("🔄 Reset", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
 
-if col_f3.button("+0.1m", use_container_width=True):
+if col_f3.button("+0.1m ➕", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-#st.write("---")
+st.write("---")
 
-# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (BEZ WSPÓŁRZĘDNYCH GEO)
+# 3. DWIE MAŁE MAPKI NA SAMYM DOLE
 st.write("**Szczegóły składowe:**")
 col_map1, col_map2 = st.columns(2)
 
 with col_map1:
     fig2, ax2 = plt.subplots(figsize=(5, 4))
     ax2.set_facecolor('#202020')
-    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
     ax2.axis('off')
     
     ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
@@ -175,7 +171,6 @@ with col_map1:
 with col_map2:
     fig3, ax3 = plt.subplots(figsize=(5, 4))
     ax3.set_facecolor('#202020')
-    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
     ax3.axis('off')
     
     ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
