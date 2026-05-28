@@ -155,7 +155,7 @@ try:
     ax1.quiver(lon_grid, lat_grid, u, v, color=kolor_strzalek, scale=25, width=0.0025, headwidth=6, headlength=5, pivot='middle', zorder=3)
 except:
     pass
-ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12, pad=10)
+#ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12, pad=10)
 plt.tight_layout()
 st.pyplot(fig1)
 
