@@ -193,7 +193,7 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.rerun()
 
 
-
+"""
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 col_map1, col_map2 = st.columns(2)
 
