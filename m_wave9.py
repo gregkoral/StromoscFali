@@ -172,8 +172,8 @@ st.markdown(
 st.markdown("""
 <style>
 div.stButton > button {
-    width: 30vw;
-    min-width: 80px;
+    width: 20vw;
+    min-width: 50px;
 }
 </style>
 """, unsafe_allow_html=True)
