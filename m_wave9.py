@@ -128,18 +128,8 @@ st.markdown(
     <style>
     
     
-    /* Pełna szerokość przycisku wewnątrz swojej kolumny */
-    [data-testid="stHorizontalBlock"] .stButton {
-        width: 100% !important;
-    }
     
-    /* Minimalny padding i wyśrodkowanie tekstu, żeby napisy się nie łamały */
-    [data-testid="stHorizontalBlock"] button {
-        padding: 6px 2px !important;
-        font-size: 13px !important;
-        white-space: nowrap !important;
-        text-overflow: clip !important;
-    }
+    
     </style>
     """,
     unsafe_allow_html=True
