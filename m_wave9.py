@@ -11,7 +11,7 @@ st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 # POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
-MIN_LON, MAX_LON = 12.0, 15.0
+MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.0, 57.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
@@ -101,9 +101,24 @@ st.markdown(
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
+
+# Sztywne wymuszenie granic kadrowania na wykresie
+ax1.set_xlim(MIN_LON, MAX_LON)
+ax1.set_ylim(MIN_LAT, MAX_LAT)
+
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
-fig1.colorbar(im1, ax=ax1, label='', pad=0.02, fraction=0.03)
+
+# --- POPRAWKA: Przeniesienie skali na dół, w pozycję poziomą na 100% szerokości ---
+fig1.colorbar(
+    im1, 
+    ax=ax1, 
+    orientation='horizontal',  # Pozycja pozioma
+    pad=0.05,                  # Odstęp od dolnej krawędzi mapy
+    fraction=0.046,            # Wymusza dopasowanie szerokości do krawędzi mapy (100%)
+    aspect=35                  # Stosunek długości do grubości paska (żeby nie był za gruby)
+)
+
 
 try:
     s_lat, s_lon = 10, 12
