@@ -103,7 +103,7 @@ st.markdown(
     }
     </style>
     """,
-    unsafe_allow_html=True
+    nsafe_allow_html=True
 )
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
