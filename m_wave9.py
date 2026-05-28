@@ -168,6 +168,17 @@ st.markdown(
 
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
+
+st.markdown("""
+<style>
+div.stButton > button {
+    width: 30vw;
+    min-width: 80px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 col_t1, col_t2, col_t3 = st.columns(3)
 
 if col_t1.button("-1h", use_container_width=True):
