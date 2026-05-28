@@ -1,0 +1,6 @@
+streamlit
+copernicusmarine
+xarray
+netcdf4
+matplotlib
+numpy
