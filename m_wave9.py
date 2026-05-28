@@ -1,7 +1,7 @@
 import subprocess
 import sys
 
-# --- AUTOMATYCZNA INSTALACJA BIBLIOTEK ---
+# --- AUTOMATYCZNA INSTALACJA BIBLIOTEK ----
 wymagane_biblioteki = {
     "streamlit": "streamlit",
     "copernicusmarine": "copernicusmarine",
