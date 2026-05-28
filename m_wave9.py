@@ -169,16 +169,26 @@ st.markdown(
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
 
-st.markdown("""
-<style>
-div.stButton > button {
-    width: 20vw;
-    min-width: 50px;
-}
-</style>
-""", unsafe_allow_html=True)
 
+# --- STYLIZACJA CSS DLA KWADRATOWYCH PRZYCISKÓW 30VW ---
+st.markdown(
+    """
+    <style>
+    div[data-testid="stButton"] > button {
+        width: 30vw !important;
+        height: 30vw !important;
+        aspect-ratio: 1 / 1 !important;
+        padding: 0 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    </style>
+    """,
+    unsafe_allow_allowed=True,
+)
 
+# --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
 col_t1, col_t2, col_t3 = st.columns(3)
 
 if col_t1.button("-1h", use_container_width=True):
@@ -208,7 +218,6 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-st.write("---")
 
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 col_map1, col_map2 = st.columns(2)
