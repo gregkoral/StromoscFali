@@ -25,30 +25,32 @@ def bezpieczne_logowanie():
         st.stop()
 
 # Keszowanie danych
-@st.cache_data(show_spinner=False)
-def pobierz_dane_godzinowe(wybrany_czas):
+@st.cache_data(show_spinner=False, ttl=3600)  # ttl=3600 odświeży cache automatycznie po godzinie
+def pobierz_paczke_danych():
     bezpieczne_logowanie()
-    start_str = (wybrany_czas - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
-    end_str = (wybrany_czas + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Wyznaczamy punkt odniesienia (teraz) i zakres -12h do +48h
+    teraz = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+    start_forecast = teraz - timedelta(hours=12)
+    end_forecast = teraz + timedelta(hours=48)
+    
+    start_str = start_forecast.strftime("%Y-%m-%d %H:%M:%S")
+    end_str = end_forecast.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
+        # Pobieramy cały trójwymiarowy blok (Lon, Lat, Time) za jednym razem
         ds = copernicusmarine.open_dataset(
-            dataset_id=DATASET_ID, start_datetime=start_str, end_datetime=end_str,
+            dataset_id=DATASET_ID, 
+            start_datetime=start_str, 
+            end_datetime=end_str,
             minimum_longitude=MIN_LON, maximum_longitude=MAX_LON,
             minimum_latitude=MIN_LAT, maximum_latitude=MAX_LAT
         )
-        wave_slice = ds.sel(time=wybrany_czas, method='nearest').load()
         
-        dane = {
-            "lon": wave_slice['longitude'].values,
-            "lat": wave_slice['latitude'].values,
-            "VHM0": wave_slice['VHM0'].values,
-            "VTM02": wave_slice['VTM02'].values,
-            "VMDR_WW": wave_slice['VMDR_WW'].values
-        }
-        return dane
+        # Bardzo ważne: .load() wymusza pobranie z chmury do pamięci RAM całego wyciętego chunk'a
+        return ds.load()
     except Exception as e:
-        st.error(f"Błąd pobierania danych: {e}")
+        st.error(f"Błąd pobierania zbiorczej paczki danych: {e}")
         st.stop()
 
 # --- INICJALIZACJA STANU SESJI (STATE) ---
@@ -61,21 +63,30 @@ if 'prog_filtra' not in st.session_state:
 wybrany_czas = st.session_state.current_time
 
 # --- POBRANIE I MATEMATYKA ---
-with st.spinner("Aktualizacja danych..."):
-    data_dict = pobierz_dane_godzinowe(wybrany_czas)
+with st.spinner("Inicjalizacja i pobieranie prognozy (-12h do +48h)..."):
+    # To wywoła się RAZ na godzinę (lub przy pierwszym wejściu użytkownika)
+    pelny_zbior_danych = pobierz_paczke_danych()
+
+# Wycięcie konkretnej godziny dzieje się już lokalnie w pamięci RAM (błyskawicznie)
+try:
+    wave_slice = pelny_zbior_danych.sel(time=wybrany_czas, method='nearest')
     
-    lons_raw = data_dict["lon"]
-    lats_raw = data_dict["lat"]
-    h_signif = data_dict["VHM0"]
-    t_mean = data_dict["VTM02"]
-    vmdr_ww = data_dict["VMDR_WW"]
+    lons_raw = wave_slice['longitude'].values
+    lats_raw = wave_slice['latitude'].values
+    h_signif = wave_slice['VHM0'].values
+    t_mean = wave_slice['VTM02'].values
+    vmdr_ww = wave_slice['VMDR_WW'].values
+except Exception as e:
+    st.error(f"Wybrana godzina ({wybrany_czas}) znajduje się poza zakresem załadowanej prognozy.")
+    st.stop()
+
+# Dalej idzie Twoja czysta matematyka (wyliczanie stromości, maskowanie lądu):
+with np.errstate(divide='ignore', invalid='ignore'):
+    wave_length = (9.81 * (t_mean ** 2)) / (2 * np.pi)
+    wave_steepness = h_signif / wave_length
     
-    with np.errstate(divide='ignore', invalid='ignore'):
-        wave_length = (9.81 * (t_mean ** 2)) / (2 * np.pi)
-        wave_steepness = h_signif / wave_length
-        
-    land_mask = np.where(np.isnan(h_signif), 1, np.nan)
-    wave_filtered = np.where(h_signif >= st.session_state.prog_filtra, wave_steepness, np.nan)
+land_mask = np.where(np.isnan(h_signif), 1, np.nan)
+wave_filtered = np.where(h_signif >= st.session_state.prog_filtra, wave_steepness, np.nan)
 
 # --- PALETY I KOLORY ---
 kolor_ladu = "#6b798d"  
