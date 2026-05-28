@@ -88,7 +88,7 @@ cmap_vtm02 = plt.cm.plasma
 # --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 # --- WYCENTROWANE NAGŁÓWKI WWW ---
 st.markdown(
-    "<h1 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
+    "<h2 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
     unsafe_allow_html=True
 )
 st.markdown(
@@ -117,7 +117,7 @@ try:
     ax1.quiver(lon_grid, lat_grid, u, v, color=kolor_strzalek, scale=25, width=0.0025, headwidth=6, headlength=5, pivot='middle', zorder=3)
 except:
     pass
-ax1.set_title("STROMOŚĆ FALI + KIERUNEK", fontsize=12, fontweight='bold')
+ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12)
 plt.tight_layout()
 st.pyplot(fig1)
 
