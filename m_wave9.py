@@ -10,7 +10,6 @@ from datetime import datetime, timedelta, UTC
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
-# POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
 MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
@@ -86,28 +85,72 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
+# --- CSS ROZCIĄGAJĄCE STRONĘ NA 100% (BEZ MARGINESÓW I PADDINGÓW) ---
+st.markdown(
+    """
+    <style>
+    /* Zerowanie marginesów głównego kontenera Streamit dla efektu Edge-to-Edge */
+    .block-container {
+        padding-top: 0rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        max-width: 100% !important;
+    }
+    /* Ukrycie systemowego paska nagłówka Streamlita */
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- DELIKATNY PODTYTUŁ NAD MAPĄ ---
+st.markdown(
+    f"<p style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
+    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
+    f"</p>", 
+    unsafe_allow_html=True
+)
+
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
-
 
 # Sztywne wymuszenie granic kadrowania na wykresie
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
 
+# --- POPRAWKA: Przeniesienie podziałek i opisów osi DO ŚRODKA MAPY ---
+ax1.tick_params(
+    axis='both', 
+    direction='in',      
+    color='#ffffff',     
+    labelcolor='#ffffff',
+    labelsize=11,        
+    pad=-25,             # Przesunięcie cyfr do wewnątrz mapy
+    zorder=5             
+)
+
+# Dopasowanie wyrównania etykiet, by przylegały ładnie do wewnętrznych krawędzi
+for label in ax1.get_yticklabels():
+    label.set_horizontalalignment('left')
+for label in ax1.get_xticklabels():
+    label.set_verticalalignment('bottom')
+
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
 
-# --- POPRAWKA: Przeniesienie skali na dół, w pozycję poziomą na 100% szerokości ---
+# Pozioma skala na 100% szerokości pod wykresem
 fig1.colorbar(
     im1, 
     ax=ax1, 
-    orientation='horizontal',  # Pozycja pozioma
-    pad=0.05,                  # Odstęp od dolnej krawędzi mapy
-    fraction=0.046,            # Wymusza dopasowanie szerokości do krawędzi mapy (100%)
-    aspect=35                  # Stosunek długości do grubości paska (żeby nie był za gruby)
+    orientation='horizontal',  
+    pad=0.02,                  
+    fraction=0.046,            
+    aspect=35                  
 )
-
 
 try:
     s_lat, s_lon = 10, 12
@@ -120,23 +163,12 @@ try:
     ax1.quiver(lon_grid, lat_grid, u, v, color=kolor_strzalek, scale=25, width=0.0025, headwidth=6, headlength=5, pivot='middle', zorder=3)
 except:
     pass
-ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12)
+ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12, pad=10)
 plt.tight_layout()
 st.pyplot(fig1)
 
-#st.write("---")
-
-
-# --- WYCENTROWANE NAGŁÓWKI WWW ---
-st.markdown(
-    f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 0px;'>"
-    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
-    f"</h3>", 
-    unsafe_allow_html=True
-)
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
-# POPRAWKA: Usunięto agresywne CSS wymuszające stałą szerokość. Przyciski mogą się teraz normalnie zawijać.
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
 
@@ -168,7 +200,7 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-#st.write("---")
+st.write("---")
 
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 st.write("**Szczegóły składowe:**")
@@ -178,6 +210,9 @@ with col_map1:
     fig2, ax2 = plt.subplots(figsize=(5, 4))
     ax2.set_facecolor('#202020')
     ax2.axis('off')
+    
+    ax2.set_xlim(MIN_LON, MAX_LON)
+    ax2.set_ylim(MIN_LAT, MAX_LAT)
     
     ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im2 = ax2.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
@@ -190,6 +225,9 @@ with col_map2:
     fig3, ax3 = plt.subplots(figsize=(5, 4))
     ax3.set_facecolor('#202020')
     ax3.axis('off')
+    
+    ax3.set_xlim(MIN_LON, MAX_LON)
+    ax3.set_ylim(MIN_LAT, MAX_LAT)
     
     ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im3 = ax3.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
