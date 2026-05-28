@@ -167,7 +167,7 @@ with col_map1:
     
     ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im2 = ax2.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
-    fig2.colorbar(im2, ax=ax2, label='VHM0 [m]', pad=0.02)
+    fig2.colorbar(im2, ax=ax2, label='', pad=0.02)
     ax2.set_title("Wysokość fali (VHM0)", fontsize=10)
     plt.tight_layout()
     st.pyplot(fig2)
@@ -180,7 +180,7 @@ with col_map2:
     
     ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im3 = ax3.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
-    fig3.colorbar(im3, ax=ax3, label='VTM02 [s]', pad=0.02)
+    fig3.colorbar(im3, ax=ax3, label='', pad=0.02)
     ax3.set_title("Okres fali (VTM02)", fontsize=10)
     plt.tight_layout()
     st.pyplot(fig3)
