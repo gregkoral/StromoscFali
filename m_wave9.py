@@ -86,21 +86,10 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- WYCENTROWANE NAGŁÓWKI WWW ---
-#st.markdown(
-    #"<h1 style='text-align: center;'>🌊 Prognoza Fal Bałtyku</h1>", 
-    #unsafe_allow_html=True
-#)
-st.markdown(
-    f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 20px;'>"
-    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
-    f"</h3>", 
-    unsafe_allow_html=True
-)
-
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
+
 
 # Sztywne wymuszenie granic kadrowania na wykresie
 ax1.set_xlim(MIN_LON, MAX_LON)
@@ -136,6 +125,15 @@ plt.tight_layout()
 st.pyplot(fig1)
 
 #st.write("---")
+
+
+# --- WYCENTROWANE NAGŁÓWKI WWW ---
+st.markdown(
+    f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 0px;'>"
+    f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
+    f"</h3>", 
+    unsafe_allow_html=True
+)
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
 # POPRAWKA: Usunięto agresywne CSS wymuszające stałą szerokość. Przyciski mogą się teraz normalnie zawijać.
