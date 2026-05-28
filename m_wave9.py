@@ -12,7 +12,7 @@ st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 # POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
 MIN_LON, MAX_LON = 12.0, 15.0
-MIN_LAT, MAX_LAT = 53.0, 56.0
+MIN_LAT, MAX_LAT = 53.0, 57.5
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # Funkcja logowania
