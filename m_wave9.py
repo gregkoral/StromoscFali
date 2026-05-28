@@ -126,13 +126,13 @@ st.pyplot(fig1)
 # 2. PANEL STEROWANIA (PRZYCISKI TEJ SAMEJ SZEROKOŚCI)
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
-if col_t1.button("⬅️ -1h", use_container_width=True):
+if col_t1.button("-1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 if col_t2.button("Teraz UTC", use_container_width=True):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-if col_t3.button("+1h ➡️", use_container_width=True):
+if col_t3.button("+1h️", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
@@ -140,16 +140,16 @@ st.write("**Sterowanie filtrem wysokości fali:**")
 # POPRAWKA: columns(3) zamiast nierównych proporcji daje identyczną szerokość przycisków
 col_f1, col_f2, col_f3 = st.columns(3)
 
-if col_f1.button("➖ -0.1m", use_container_width=True):
+if col_f1.button("-0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
 
 # POPRAWKA: Czysty przycisk "Reset" o równej szerokości
-if col_f2.button("🔄 Reset", use_container_width=True):
+if col_f2.button("Reset", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
 
-if col_f3.button("+0.1m ➕", use_container_width=True):
+if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
