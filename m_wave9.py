@@ -39,13 +39,15 @@ MIN_LAT, MAX_LAT = 53.0, 56.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # --- CACHOWANIE DANYCH W RAMIE SERWERA ---
-# Dzięki temu serwer pobiera dane z Copernicus tylko wtedy, gdy zmienimy zakres czasu.
 @st.cache_data(show_spinner=False)
 def pobierz_paczke_danych(start_str, end_str):
     try:
-        # Próba automatycznego logowania (wykorzystuje plik konfiguracyjny lub zmienne środowiskowe)
-        copernicusmarine.login()
-    except Exception:
+        # Pobieramy sekrety ze Streamlit Cloud i przekazujemy bezpośrednio do funkcji login
+        username = st.secrets["COPERNICUS_USERNAME"]
+        password = st.secrets["COPERNICUS_PASSWORD"]
+        copernicusmarine.login(username=username, password=password, skip_if_logged=True)
+    except Exception as e:
+        # Jeśli testujesz lokalnie i nie masz st.secrets, przejdzie bez błędu
         pass
     
     ds = copernicusmarine.open_dataset(
