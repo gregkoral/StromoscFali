@@ -202,11 +202,10 @@ if col_f3.button("+0.1m", use_container_width=True):
 st.write("---")
 
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
-st.write("**Szczegóły składowe:**")
 col_map1, col_map2 = st.columns(2)
 
 with col_map1:
-    fig2, ax2 = plt.subplots(figsize=(5, 4))
+    fig2, ax2 = plt.subplots(figsize=(4, 4))
     ax2.set_facecolor('#202020')
     ax2.axis('off')
     
@@ -221,7 +220,7 @@ with col_map1:
     st.pyplot(fig2)
 
 with col_map2:
-    fig3, ax3 = plt.subplots(figsize=(5, 4))
+    fig3, ax3 = plt.subplots(figsize=(4, 4))
     ax3.set_facecolor('#202020')
     ax3.axis('off')
     
