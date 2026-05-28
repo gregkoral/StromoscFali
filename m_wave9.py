@@ -103,7 +103,6 @@ fig1, ax1 = plt.subplots(figsize=(10, 6))
 ax1.set_facecolor('#404040')
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
-# POPRAWKA: Usunięty podpis "Stromość fali" z bocznego gradientu (label='')
 fig1.colorbar(im1, ax=ax1, label='', pad=0.02, fraction=0.03)
 
 try:
@@ -123,28 +122,41 @@ st.pyplot(fig1)
 
 #st.write("---")
 
-# 2. PANEL STEROWANIA (Wszystkie przyciski po 3 w jednej linii, równej szerokości)
+# --- CSS BLOKUJĄCE ZAWIJANIE KOLUMN NA TELEFONACH ---
+st.markdown(
+    """
+    <style>
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# 2. PANEL STEROWANIA (Wszystkie przyciski po 3 w linii - zablokowane zawijanie)
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
-if col_t1.button("⬅️ -1h", use_container_width=True):
+if col_t1.button("-1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
-if col_t2.button("Teraz UTC", use_container_width=True):
+if col_t2.button("Teraz", use_container_width=True):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-if col_t3.button("+1h ➡️", use_container_width=True):
+if col_t3.button("+1h️", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
 st.write("**Sterowanie filtrem wysokości fali:**")
 col_f1, col_f2, col_f3 = st.columns(3)
-if col_f1.button("➖ -0.1m", use_container_width=True):
+if col_f1.button("-0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
-if col_f2.button("🔄 Reset", use_container_width=True):
+if col_f2.button("Reset", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
-if col_f3.button("+0.1m ➕", use_container_width=True):
+if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
