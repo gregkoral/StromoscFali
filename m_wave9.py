@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, UTC
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
+# POPRAWKA: Zawężenie długości geograficznej do zakresu 12 - 15 stopni
 MIN_LON, MAX_LON = 12.0, 15.0
 MIN_LAT, MAX_LAT = 53.0, 56.0
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
@@ -121,31 +122,8 @@ st.pyplot(fig1)
 
 st.write("---")
 
-# --- NATYWNE I RESPONSYWNE STEROWANIE BEZ PRZEŁADOWYWANIA STRONY ---
-st.markdown(
-    """
-    <style>
-    /* Wymuszenie na natywnych przyciskach Streamlita, by były w jednej linii 33.33% */
-    [data-testid="stHorizontalBlock"] {
-        flex-wrap: nowrap !important;
-        gap: 6px !important;
-    }
-    [data-testid="stHorizontalBlock"] [data-testid="column"] {
-        width: 33.33% !important;
-        flex: 1 1 33.33% !important;
-        min-width: 33.33% !important;
-    }
-    /* Usunięcie domyślnych gigantycznych marginesów Streamlita na telefonie i elastyczne zwężanie */
-    [data-testid="stHorizontalBlock"] button {
-        padding: 8px 2px !important;
-        font-size: 13px !important;
-        white-space: nowrap !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
+# --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
+# POPRAWKA: Usunięto agresywne CSS wymuszające stałą szerokość. Przyciski mogą się teraz normalnie zawijać.
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
 
