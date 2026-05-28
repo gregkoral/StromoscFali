@@ -160,15 +160,15 @@ plt.tight_layout()
 st.pyplot(fig1)
 
 st.markdown(
-    f"<p style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
+    f"<h4 style='text-align: center; color: #888888; font-size: 13px; margin-top: 4px; margin-bottom: 4px; font-family: sans-serif;'>"
     f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr: > {st.session_state.prog_filtra:.1f}m"
-    f"</p>", 
+    f"</h4>", 
     unsafe_allow_html=True
 )
 
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
-st.write("**Sterowanie czasem:**")
+st.write("**Sterowanie czasem**")
 col_t1, col_t2, col_t3 = st.columns(3)
 
 if col_t1.button("-1h", use_container_width=True):
@@ -184,7 +184,7 @@ if col_t3.button("+1h", use_container_width=True):
     st.rerun()
 
 
-st.write("**Sterowanie filtrem wysokości fali:**")
+st.write("**Sterowanie filtrem wysokości fali**")
 col_f1, col_f2, col_f3 = st.columns(3)
 
 if col_f1.button("-0.1m", use_container_width=True):
