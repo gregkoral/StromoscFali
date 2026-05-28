@@ -87,14 +87,16 @@ cmap_vtm02 = plt.cm.plasma
 
 # --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 st.title("🌊 Prognoza Fal Bałtyku")
-st.subheader(f"Czas: {wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr: >{st.session_state.prog_filtra:.1f}m")
+# Aktualna wartość filtra przeniesiona do czytelnego podtytułu
+st.subheader(f"Czas: {wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m")
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(10, 6))
 ax1.set_facecolor('#404040')
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
-fig1.colorbar(im1, ax=ax1, label='Stromość fali', pad=0.02, fraction=0.03)
+# POPRAWKA: Usunięty podpis "Stromość fali" z bocznego gradientu (label='')
+fig1.colorbar(im1, ax=ax1, label='', pad=0.02, fraction=0.03)
 
 try:
     s_lat, s_lon = 10, 12
@@ -113,7 +115,7 @@ st.pyplot(fig1)
 
 st.write("---")
 
-# 2. PANEL STEROWANIA (PRZYCISKI POD GŁÓWNĄ MAPĄ)
+# 2. PANEL STEROWANIA (PRZYCISKI TEJ SAMEJ SZEROKOŚCI)
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
 if col_t1.button("⬅️ -1h", use_container_width=True):
@@ -127,32 +129,34 @@ if col_t3.button("+1h ➡️", use_container_width=True):
     st.rerun()
 
 st.write("**Sterowanie filtrem wysokości fali:**")
-col_f1, col_f2, col_f3 = st.columns([1, 2, 1])
+# POPRAWKA: columns(3) zamiast nierównych proporcji daje identyczną szerokość przycisków
+col_f1, col_f2, col_f3 = st.columns(3)
 
-# Przycisk zmniejszania progu filtra
 if col_f1.button("➖ -0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
 
-# POPRAWKA: Klikalny przycisk resetu pokazujący jednocześnie aktualną wartość filtra
-if col_f2.button(f"🔄 Reset (aktywne: {st.session_state.prog_filtra:.1f}m)", use_container_width=True):
+# POPRAWKA: Czysty przycisk "Reset" o równej szerokości
+if col_f2.button("🔄 Reset", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
 
-# Przycisk zwiększania progu filtra
 if col_f3.button("+0.1m ➕", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
 st.write("---")
 
-# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (VHM0 i VTM02)
+# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (BEZ WSPÓŁRZĘDNYCH GEO)
 st.write("**Szczegóły składowe:**")
 col_map1, col_map2 = st.columns(2)
 
 with col_map1:
     fig2, ax2 = plt.subplots(figsize=(5, 4))
     ax2.set_facecolor('#202020')
+    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
+    ax2.axis('off')
+    
     ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im2 = ax2.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
     fig2.colorbar(im2, ax=ax2, label='VHM0 [m]', pad=0.02)
@@ -163,6 +167,9 @@ with col_map1:
 with col_map2:
     fig3, ax3 = plt.subplots(figsize=(5, 4))
     ax3.set_facecolor('#202020')
+    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
+    ax3.axis('off')
+    
     ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
     im3 = ax3.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
     fig3.colorbar(im3, ax=ax3, label='VTM02 [s]', pad=0.02)
