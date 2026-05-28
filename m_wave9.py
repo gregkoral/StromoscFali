@@ -192,8 +192,7 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-
-"""
+###
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 col_map1, col_map2 = st.columns(2)
 
@@ -225,4 +224,4 @@ with col_map2:
     fig3.colorbar(im3, ax=ax3, label='', pad=0.02)
     ax3.set_title("Okres fali (VTM02)", fontsize=10)
     plt.tight_layout()
-    st.pyplot(fig3)"""
+    st.pyplot(fig3)
