@@ -122,36 +122,42 @@ st.pyplot(fig1)
 
 #st.write("---")
 
-# --- CSS WYMUSZAJĄCE ZWĘŻANIE PRZYCISKÓW I BRAK ZAWIJANIA ---
+# --- CSS WYMUSZAJĄCE SZTYWNE 30% SZEROKOŚCI DLA KAŻDEGO PRZYCISKU ---
 st.markdown(
     """
     <style>
-    /* Blokowanie zawijania kolumn do nowej linii */
+    /* Wymuszenie braku zawijania i równego rozkładu kolumn */
     [data-testid="stHorizontalBlock"] {
         flex-wrap: nowrap !important;
-        gap: 4px !important; /* Minimalny odstęp między kolumnami */
+        justify-content: space-between !important;
+        gap: 0 !important; /* Odstępy kontrolowane przez marginesy */
     }
     
-    /* Wymuszenie na przyciskach, by dopasowywały się do dostępnej szerokości */
+    /* Każda z trzech kolumn dostaje sztywne ~31% szerokości ekranu */
+    [data-testid="stHorizontalBlock"] [data-testid="column"] {
+        width: 31% !important;
+        flex: 0 0 31% !important;
+        min-width: 31% !important;
+    }
+    
+    /* Pełna szerokość przycisku wewnątrz swojej kolumny */
     [data-testid="stHorizontalBlock"] .stButton {
         width: 100% !important;
     }
     
-    /* Radykalne zmniejszenie wewnętrznych marginesów przycisków, by mogły się zwężać */
+    /* Minimalny padding i wyśrodkowanie tekstu, żeby napisy się nie łamały */
     [data-testid="stHorizontalBlock"] button {
-        padding-left: 2px !important;
-        padding-right: 2px !important;
-        padding-top: 6px !important;
-        padding-bottom: 6px !important;
-        font-size: 13px !important; /* Nieco mniejsza czcionka, żeby napisy się zmieściły */
-        white-space: nowrap !important; /* Blokowanie zawijania tekstu wewnątrz przycisku */
+        padding: 6px 2px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
+        text-overflow: clip !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# 2. PANEL STEROWANIA (Elastyczne przyciski, zawsze 3 w linii)
+# 2. PANEL STEROWANIA (Sztywne proporcje procentowe)
 st.write("**Sterowanie czasem:**")
 col_t1, col_t2, col_t3 = st.columns(3)
 if col_t1.button("⬅️ -1h", use_container_width=True):
