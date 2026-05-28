@@ -87,9 +87,9 @@ cmap_vtm02 = plt.cm.plasma
 
 # --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 # --- WYCENTROWANE NAGŁÓWKI WWW ---
-st.markdown(
-    "<h2 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
-    unsafe_allow_html=True
+##st.markdown(
+    ##"<h2 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
+    ##unsafe_allow_html=True
 )
 st.markdown(
     f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 20px;'>"
