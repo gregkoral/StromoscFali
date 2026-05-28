@@ -191,13 +191,12 @@ if col_f2.button("Reset", use_container_width=True):
 if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
-
-'''
+
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 col_map1, col_map2 = st.columns(2)
 
 with col_map1:
-    fig2, ax2 = plt.subplots(figsize=(4, 4))
+    fig2, ax2 = plt.subplots(figsize=(2, 2))
     ax2.set_facecolor('#202020')
     ax2.axis('off')
     
@@ -212,7 +211,7 @@ with col_map1:
     st.pyplot(fig2)
 
 with col_map2:
-    fig3, ax3 = plt.subplots(figsize=(4, 4))
+    fig3, ax3 = plt.subplots(figsize=(2, 2))
     ax3.set_facecolor('#202020')
     ax3.axis('off')
     
