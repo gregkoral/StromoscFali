@@ -114,22 +114,17 @@ ax1.set_facecolor('#404040')
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
 
-# --- POPRAWKA: Przeniesienie podziałek i opisów osi DO ŚRODKA MAPY ---
+# --- UKRYCIE ETYKIET OSI (SZEROKOŚĆ I DŁUGOŚĆ GEO) ---
 ax1.tick_params(
-    axis='both', 
-    direction='in',      
-    color='#ffffff',     
-    labelcolor='#ffffff',
-    labelsize=11,        
-    pad=-25,             # Przesunięcie cyfr do wewnątrz mapy
-    zorder=5             
+    axis='both',       # Dotyczy obu osi
+    which='both',      
+    bottom=False,      # Usuwa kreski podziałki na dole
+    top=False,         # Usuwa kreski podziałki na górze
+    left=False,        # Usuwa kreski podziałki po lewej
+    right=False,       # Usuwa kreski podziałki po prawej
+    labelbottom=False, # Ukrywa numery długości geo (X)
+    labelleft=False    # Ukrywa numery szerokości geo (Y)
 )
-
-# Dopasowanie wyrównania etykiet, by przylegały ładnie do wewnętrznych krawędzi
-for label in ax1.get_yticklabels():
-    label.set_horizontalalignment('left')
-for label in ax1.get_xticklabels():
-    label.set_verticalalignment('bottom')
 
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
