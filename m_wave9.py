@@ -169,14 +169,21 @@ st.markdown(
 
 # --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
 st.write("**Sterowanie czasem**")
-col_t1, col_t2, col_t3 = st.columns(3)
+
+col_t1, col_t2, col_t3 = st.columns(
+    [1, 1, 1],
+    gap="small"
+)
 
 if col_t1.button("-1h", use_container_width=True):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 
 if col_t2.button("Teraz", use_container_width=True):
-    st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+    st.session_state.current_time = (
+        datetime.now(UTC)
+        .replace(minute=0, second=0, microsecond=0, tzinfo=None)
+    )
     st.rerun()
 
 if col_t3.button("+1h", use_container_width=True):
