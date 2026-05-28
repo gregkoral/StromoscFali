@@ -85,12 +85,11 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- INTERFEJS UŻYTKOWNIKA (PIONOWY LAYOUT) ---
 # --- WYCENTROWANE NAGŁÓWKI WWW ---
-#st.markdown(
-    #"<h2 style='text-align: center;'>Prognoza Fal Bałtyku</h1>", 
-    #unsafe_allow_html=True
-#)
+st.markdown(
+    "<h1 style='text-align: center;'>🌊 Prognoza Fal Bałtyku</h1>", 
+    unsafe_allow_html=True
+)
 st.markdown(
     f"<h3 style='text-align: center; color: #888888; font-weight: normal; margin-bottom: 20px;'>"
     f"{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC | Filtr H: > {st.session_state.prog_filtra:.1f}m"
@@ -120,102 +119,73 @@ ax1.set_title("Stromość fali + Kierunek fali wiatrowej", fontsize=12)
 plt.tight_layout()
 st.pyplot(fig1)
 
-#st.write("---")
+st.write("---")
 
+# --- NATYWNE I RESPONSYWNE STEROWANIE BEZ PRZEŁADOWYWANIA STRONY ---
+st.markdown(
+    """
+    <style>
+    /* Wymuszenie na natywnych przyciskach Streamlita, by były w jednej linii 33.33% */
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+    }
+    [data-testid="stHorizontalBlock"] [data-testid="column"] {
+        width: 33.33% !important;
+        flex: 1 1 33.33% !important;
+        min-width: 33.33% !important;
+    }
+    /* Usunięcie domyślnych gigantycznych marginesów Streamlita na telefonie i elastyczne zwężanie */
+    [data-testid="stHorizontalBlock"] button {
+        padding: 8px 2px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-# --- OBSŁUGA KLIKNIĘĆ PRZYCISKÓW HTML (ZADANIA) ---
-params = st.query_params
+st.write("**Sterowanie czasem:**")
+col_t1, col_t2, col_t3 = st.columns(3)
 
-if "action" in params:
-    akcja = params["action"]
-    # Czyszczenie parametru z URL, żeby akcja nie wykonywała się przy każdym odświeżeniu
-    st.query_params.clear()
-    
-    # Sterowanie czasem
-    if akcja == "time_minus":
-        st.session_state.current_time -= timedelta(hours=1)
-    elif akcja == "time_now":
-        st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
-    elif akcja == "time_plus":
-        st.session_state.current_time += timedelta(hours=1)
-    
-    # Sterowanie filtrem
-    elif akcja == "filter_minus":
-        st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
-    elif akcja == "filter_reset":
-        st.session_state.prog_filtra = 0.5
-    elif akcja == "filter_plus":
-        st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
-        
+if col_t1.button("⬅️ -1h", use_container_width=True):
+    st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 
-# --- STYLIZACJA I GENEROWANIE TABELI 100% SZEROKOŚCI ---
-tabela_html = f"""
-<style>
-    .mobile-table {{
-        width: 100% !important;
-        border-collapse: collapse;
-        margin-bottom: 15px;
-        table-layout: fixed; /* Wymusza równe dzielenie kolumn */
-    }}
-    .mobile-table td {{
-        width: 33.33% !important;
-        padding: 4px !important;
-        text-align: center;
-        border: none !important;
-    }}
-    .mobile-btn {{
-        width: 100% !important;
-        display: block;
-        box-sizing: border-box;
-        padding: 10px 2px !important;
-        font-size: 13px !important;
-        font-family: sans-serif;
-        text-align: center;
-        text-decoration: none;
-        background-color: #262730;
-        color: #ffffff;
-        border: 1px solid #464855;
-        border-radius: 4px;
-        cursor: pointer;
-    }}
-    .mobile-btn:active {{
-        background-color: #ff4b4b; /* Efekt kliknięcia w stylu Streamlit */
-    }}
-</style>
+if col_t2.button("Teraz UTC", use_container_width=True):
+    st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+    st.rerun()
 
-<p style='margin-bottom: 5px; font-weight: bold;'>Sterowanie czasem:</p>
-<table class="mobile-table">
-    <tr>
-        <td><a href="?action=time_minus" target="_self" class="mobile-btn">⬅️ -1h</a></td>
-        <td><a href="?action=time_now" target="_self" class="mobile-btn">Teraz UTC</a></td>
-        <td><a href="?action=time_plus" target="_self" class="mobile-btn">+1h ➡️</a></td>
-    </tr>
-</table>
+if col_t3.button("+1h ➡️", use_container_width=True):
+    st.session_state.current_time += timedelta(hours=1)
+    st.rerun()
 
-<p style='margin-bottom: 5px; font-weight: bold;'>Sterowanie filtrem wysokości fali:</p>
-<table class="mobile-table">
-    <tr>
-        <td><a href="?action=filter_minus" target="_self" class="mobile-btn">➖ -0.1m</a></td>
-        <td><a href="?action=filter_reset" target="_self" class="mobile-btn">🔄 Reset</a></td>
-        <td><a href="?action=filter_plus" target="_self" class="mobile-btn">+0.1m ➕</a></td>
-    </tr>
-</table>
-"""
 
-# Renderowanie tabeli jako czysty HTML/CSS na stronie
-st.markdown(tabela_html, unsafe_allow_html=True)
+st.write("**Sterowanie filtrem wysokości fali:**")
+col_f1, col_f2, col_f3 = st.columns(3)
 
-#st.write("---")
+if col_f1.button("➖ -0.1m", use_container_width=True):
+    st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
+    st.rerun()
 
-# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (BEZ WSPÓŁRZĘDNYCH GEO)
+if col_f2.button("🔄 Reset", use_container_width=True):
+    st.session_state.prog_filtra = 0.5
+    st.rerun()
+
+if col_f3.button("+0.1m ➕", use_container_width=True):
+    st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
+    st.rerun()
+
+st.write("---")
+
+# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 st.write("**Szczegóły składowe:**")
 col_map1, col_map2 = st.columns(2)
 
 with col_map1:
     fig2, ax2 = plt.subplots(figsize=(5, 4))
     ax2.set_facecolor('#202020')
-    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
     ax2.axis('off')
     
     ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
@@ -228,7 +198,6 @@ with col_map1:
 with col_map2:
     fig3, ax3 = plt.subplots(figsize=(5, 4))
     ax3.set_facecolor('#202020')
-    # POPRAWKA: Usunięcie siatki, współrzędnych i ramek geograficznych
     ax3.axis('off')
     
     ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
