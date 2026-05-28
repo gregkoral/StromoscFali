@@ -167,26 +167,42 @@ st.markdown(
 )
 
 
-# --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
+st.markdown("""
+<style>
+div[data-testid="stHorizontalBlock"] {
+    gap: 0.25rem;
+}
+
+div[data-testid="column"] {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+}
+
+div[data-testid="column"] button {
+    width: 100%;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- PANEL STEROWANIA ---
 st.write("**Sterowanie czasem**")
 
-col_t1, col_t2, col_t3 = st.columns(
-    [1, 1, 1],
-    gap="small"
-)
+col1, col2, col3 = st.columns(3)
 
-if col_t1.button("-1h", use_container_width=True):
+if col1.button("-1h"):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 
-if col_t2.button("Teraz", use_container_width=True):
+if col2.button("Teraz"):
     st.session_state.current_time = (
         datetime.now(UTC)
         .replace(minute=0, second=0, microsecond=0, tzinfo=None)
     )
     st.rerun()
 
-if col_t3.button("+1h", use_container_width=True):
+if col3.button("+1h"):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
