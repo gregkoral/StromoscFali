@@ -128,11 +128,18 @@ if col_t3.button("+1h ➡️", use_container_width=True):
 
 st.write("**Sterowanie filtrem wysokości fali:**")
 col_f1, col_f2, col_f3 = st.columns([1, 2, 1])
+
+# Przycisk zmniejszania progu filtra
 if col_f1.button("➖ -0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
-# Środkowa kolumna tylko wyświetla obecny stan filtra w ładny sposób
-col_f2.markdown(f"<h3 style='text-align: center; margin: 0;'>{st.session_state.prog_filtra:.1f} m</h3>", unsafe_allow_html=True)
+
+# POPRAWKA: Klikalny przycisk resetu pokazujący jednocześnie aktualną wartość filtra
+if col_f2.button(f"🔄 Reset (aktywne: {st.session_state.prog_filtra:.1f}m)", use_container_width=True):
+    st.session_state.prog_filtra = 0.5
+    st.rerun()
+
+# Przycisk zwiększania progu filtra
 if col_f3.button("+0.1m ➕", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
