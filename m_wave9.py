@@ -101,33 +101,6 @@ st.markdown(
     [data-testid="stHeader"] {
         display: none !important;
     }
-
-    /* Wymuszenie stałego układu 3 kolumn dla przycisków na telefonach */
-    [data-testid="stHorizontalBlock"].matryca-przyciskow {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 0.2rem !important; /* Mniejszy odstęp między kolumnami (lewo-prawo) */
-        margin-bottom: -0.5rem !important; /* Drastyczne zmniejszenie odstępu między wierszami (góra-dół) */
-    }
-    [data-testid="stHorizontalBlock"].matryca-przyciskow > div [data-testid="column"] {
-        min-width: calc(33.33% - 0.13rem) !important;
-        max-width: calc(33.33% - 0.13rem) !important;
-        width: 33.33% !important;
-    }
-    
-    /* --- ZMNIEJSZENIE WYSOKOŚCI I ZAGĘSZCZENIE PRZYCISKÓW --- */
-    [data-testid="stHorizontalBlock"].matryca-przyciskow button {
-        padding-top: 0px !important;    /* Minimalny padding od góry */
-        padding-bottom: 0px !important; /* Minimalny padding od dołu */
-        min-height: 28px !important;    /* Wymuszenie mniejszej wysokości całkowitej */
-        line-height: 1.2 !important;     /* Niższa linia tekstu */
-    }
-    
-    /* Usunięcie domyślnych gigantycznych marginesów kontenerów Streamlita wokół przycisków */
-    [data-testid="stHorizontalBlock"].matryca-przyciskow div[data-testid="stBtnBlock"] {
-        margin-bottom: 0rem !important;
-        padding-bottom: 0rem !important;
-    }
     </style>
     """,
     unsafe_allow_html=True
