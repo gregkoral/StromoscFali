@@ -85,7 +85,7 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- NOWY BLOK CSS: WYMUSZENIE ŁAMANIA PRZY 800PX ORAZ BLOKADA ŁAMANIA PRZY 640PX ---
+# --- NOWY BLOK CSS: WYMUSZENIE ŁAMANIA PRZY 500PX ---
 st.markdown(
     """
     <style>
@@ -102,27 +102,26 @@ st.markdown(
         display: none !important;
     }
 
-    /* 3. UKŁAD DOMYŚLNY (DLA DUŻYCH EKRANÓW > 800PX) */
+    /* 3. UKŁAD DOMYŚLNY (DLA EKRANÓW > 500PX) - MAPKI OBOK SIEBIE */
     [data-testid="stHorizontalBlock"].dolne-mapki {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         gap: 0.5rem !important;
     }
-    /* Nadpisujemy wewnętrzne kolumny Streamlita, żeby stały obok siebie */
+    /* Wymuszenie szerokości 50% dla kolumn na szerszych ekranach */
     [data-testid="stHorizontalBlock"].dolne-mapki > div [data-testid="column"] {
         min-width: calc(50% - 0.25rem) !important;
         max-width: calc(50% - 0.25rem) !important;
         width: 50% !important;
     }
 
-    /* 4. TRYB MOBILNY (DLA EKRANÓW <= 800PX)
-       Wymuszamy łamanie do pionu już od 800px (zamiast standardowych 640px)
-    */
-    @media (max-width: 800px) {
+    /* 4. TRYB MOBILNY (DLA EKRANÓW <= 500PX) - MAPKI JEDNA POD DRUGĄ */
+    @media (max-width: 500px) {
         [data-testid="stHorizontalBlock"].dolne-mapki {
             flex-direction: column !important;
             flex-wrap: wrap !important;
         }
+        /* Wymuszenie pełnej szerokości 100% na małych ekranach */
         [data-testid="stHorizontalBlock"].dolne-mapki > div [data-testid="column"] {
             min-width: 100% !important;
             max-width: 100% !important;
