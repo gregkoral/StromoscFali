@@ -85,11 +85,11 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- NOWY BLOK CSS: WYMUSZENIE ŁAMANIA PRZY 500PX ---
+# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE ORAZ PRZEŁĄCZNIK WIDOKÓW 500PX) ---
 st.markdown(
     """
     <style>
-    /* 1. Reset marginesów bocznych aplikacji dla efektu krawędź-do-krawędzi */
+    /* Zerowanie marginesów głównego kontenera Streamlit dla efektu Edge-to-Edge */
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 1rem !important;
@@ -97,36 +97,19 @@ st.markdown(
         padding-right: 0rem !important;
         max-width: 100% !important;
     }
-    /* 2. Ukrycie paska nagłówka */
+    /* Ukrycie systemowego paska nagłówka Streamlita */
     [data-testid="stHeader"] {
         display: none !important;
     }
 
-    /* 3. UKŁAD DOMYŚLNY (DLA EKRANÓW > 500PX) - MAPKI OBOK SIEBIE */
-    [data-testid="stHorizontalBlock"].dolne-mapki {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 0.5rem !important;
-    }
-    /* Wymuszenie szerokości 50% dla kolumn na szerszych ekranach */
-    [data-testid="stHorizontalBlock"].dolne-mapki > div [data-testid="column"] {
-        min-width: calc(50% - 0.25rem) !important;
-        max-width: calc(50% - 0.25rem) !important;
-        width: 50% !important;
-    }
+    /* Reguły dla dolnych mapek: domyślnie pokazuj wersję poziomą (desktop), ukryj pionową (mobilną) */
+    .wersja-mobilna { display: none !important; }
+    .wersja-desktop { display: block !important; }
 
-    /* 4. TRYB MOBILNY (DLA EKRANÓW <= 500PX) - MAPKI JEDNA POD DRUGĄ */
+    /* Gdy ekran ma 500px lub mniej - odwracamy sytuację */
     @media (max-width: 500px) {
-        [data-testid="stHorizontalBlock"].dolne-mapki {
-            flex-direction: column !important;
-            flex-wrap: wrap !important;
-        }
-        /* Wymuszenie pełnej szerokości 100% na małych ekranach */
-        [data-testid="stHorizontalBlock"].dolne-mapki > div [data-testid="column"] {
-            min-width: 100% !important;
-            max-width: 100% !important;
-            width: 100% !important;
-        }
+        .wersja-desktop { display: none !important; }
+        .wersja-mobilna { display: block !important; }
     }
     </style>
     """,
@@ -141,7 +124,7 @@ ax1.set_facecolor('#404040')
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
 
-# --- UKRYCIE ETYKIET OSI ---
+# --- UKRYCIE ETYKIET OSI (SZEROKOŚĆ I DŁUGOŚĆ GEO) ---
 ax1.tick_params(
     axis='both',       
     which='both',      
@@ -156,7 +139,7 @@ ax1.tick_params(
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
 
-# Pozioma skala pod wykresem
+# Pozioma skala na 100% szerokości pod wykresem
 fig1.colorbar(
     im1, 
     ax=ax1, 
@@ -188,6 +171,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 # --- PANEL STEROWANIA ---
 col_t1, col_t2, col_t3 = st.columns(3)
 
@@ -202,6 +186,7 @@ if col_t2.button("Teraz", use_container_width=True):
 if col_t3.button("+1h", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
+
 
 col_f1, col_f2, col_f3 = st.columns(3)
 
@@ -218,37 +203,66 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.rerun()
 
 
-# 3. DWIE MAŁE MAPKI NA SAMYM DOLE (Z KONTROLĄ KLASY CSS ORAZ STRUKTURY KOLUMN)
-st.markdown("<div class='dolne-mapki'>", unsafe_allow_html=True)
-col_map1, col_map2 = st.columns(2)
+# 3. GENEROWANIE WARIANTÓW GRAFICZNYCH DLA DOLNYCH MAPEK
 
-with col_map1:
-    fig2, ax2 = plt.subplots(figsize=(4, 4.5))  
-    ax2.set_facecolor('#202020')
-    ax2.axis('off')
-    
-    ax2.set_xlim(MIN_LON, MAX_LON)
-    ax2.set_ylim(MIN_LAT, MAX_LAT)
-    
-    ax2.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-    im2 = ax2.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
-    fig2.colorbar(im2, ax=ax2, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
-    ax2.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
-    plt.tight_layout()
-    st.pyplot(fig2)
+# === WERSJA DESKTOP (Ekran > 500px): Mapki sklejone obok siebie na jednej figurze ===
+fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(10, 5.2))
 
-with col_map2:
-    fig3, ax3 = plt.subplots(figsize=(4, 4.5))
-    ax3.set_facecolor('#202020')
-    ax3.axis('off')
-    
-    ax3.set_xlim(MIN_LON, MAX_LON)
-    ax3.set_ylim(MIN_LAT, MAX_LAT)
-    
-    ax3.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-    im3 = ax3.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
-    fig3.colorbar(im3, ax=ax3, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
-    ax3.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
-    plt.tight_layout()
-    st.pyplot(fig3)
-st.markdown("</div>", unsafe_allow_html=True)
+# Lewy podwykres (VHM0)
+ax2_d.set_facecolor('#202020')
+ax2_d.axis('off')
+ax2_d.set_xlim(MIN_LON, MAX_LON)
+ax2_d.set_ylim(MIN_LAT, MAX_LAT)
+ax2_d.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+im2_d = ax2_d.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
+fig_desktop.colorbar(im2_d, ax=ax2_d, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
+ax2_d.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
+
+# Prawy podwykres (VTM02)
+ax3_d.set_facecolor('#202020')
+ax3_d.axis('off')
+ax3_d.set_xlim(MIN_LON, MAX_LON)
+ax3_d.set_ylim(MIN_LAT, MAX_LAT)
+ax3_d.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+im3_d = ax3_d.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
+fig_desktop.colorbar(im3_d, ax=ax3_d, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
+ax3_d.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
+
+fig_desktop.tight_layout()
+
+
+# === WERSJA MOBILNA (Ekran <= 500px): Dwie osobne figury rysowane pionowo ===
+fig_m1, ax2_m = plt.subplots(figsize=(5, 5.2))
+ax2_m.set_facecolor('#202020')
+ax2_m.axis('off')
+ax2_m.set_xlim(MIN_LON, MAX_LON)
+ax2_m.set_ylim(MIN_LAT, MAX_LAT)
+ax2_m.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+im2_m = ax2_m.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
+fig_m1.colorbar(im2_m, ax=ax2_m, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
+ax2_m.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
+fig_m1.tight_layout()
+
+fig_m2, ax3_m = plt.subplots(figsize=(5, 5.2))
+ax3_m.set_facecolor('#202020')
+ax3_m.axis('off')
+ax3_m.set_xlim(MIN_LON, MAX_LON)
+ax3_m.set_ylim(MIN_LAT, MAX_LAT)
+ax3_m.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
+im3_m = ax3_m.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
+fig_m2.colorbar(im3_m, ax=ax3_m, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
+ax3_m.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
+fig_m2.tight_layout()
+
+
+# === WYŚWIETLANIE KONTENERÓW W DEPENDENCJI OD ROZDZIELCZOŚCI ===
+with st.container():
+    st.markdown("<div class='wersja-desktop'>", unsafe_allow_html=True)
+    st.pyplot(fig_desktop)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with st.container():
+    st.markdown("<div class='wersja-mobilna'>", unsafe_allow_html=True)
+    st.pyplot(fig_m1)
+    st.pyplot(fig_m2)
+    st.markdown("</div>", unsafe_allow_html=True)
