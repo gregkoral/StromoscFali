@@ -56,7 +56,7 @@ if 'current_time' not in st.session_state:
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
 
 if 'prog_filtra' not in st.session_state:
-    st.session_state.st.session_state.prog_filtra = 0.5
+    st.session_state.prog_filtra = 0.5
 
 wybrany_czas = st.session_state.current_time
 
