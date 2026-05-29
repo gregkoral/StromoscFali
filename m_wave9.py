@@ -107,7 +107,7 @@ st.markdown(
 )
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
-fig1, ax1 = plt.subplots(figsize=(10, 10))
+fig1, ax1 = plt.subplots(figsize=(8, 8))
 ax1.set_facecolor('#404040')
 
 # Sztywne wymuszenie granic kadrowania na wykresie
