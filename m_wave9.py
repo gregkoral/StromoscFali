@@ -20,15 +20,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-st.markdown("""
-    <style>
-    section[data-testid="stMainBlockContainer"] {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 # Konfiguracja strony Streamlit - układ dopasowany do telefonów
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
