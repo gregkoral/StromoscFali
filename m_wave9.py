@@ -24,65 +24,79 @@ def bezpieczne_logowanie():
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
 
-# Keszujemy wyłącznie czysty słownik z tablicami NumPy (błyskawiczna serializacja)
+# --- NOWE, ULTRA-SZYBKIE KESZOWANIE BLOKU DANYCH (-12h do +48h) ---
 @st.cache_data(show_spinner=False)
-def pobierz_dane_godzinowe(wybrany_czas):
+def pobierz_pelny_blok_danych(odniesienie_czasu):
     bezpieczne_logowanie()
-    start_str = (wybrany_czas - timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
-    end_str = (wybrany_czas + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Definiujemy ramy czasowe: 12 godzin w tył, 48 godzin w przód
+    start_time = odniesienie_czasu - timedelta(hours=12)
+    end_time = odniesienie_czasu + timedelta(hours=48)
+    
+    start_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
+    end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
+        # Pobieramy CAŁY zakres czasu i TYLKO 3 potrzebne zmienne
         ds = copernicusmarine.open_dataset(
-            dataset_id=DATASET_ID, start_datetime=start_str, end_datetime=end_str,
-            minimum_longitude=MIN_LON, maximum_longitude=MAX_LON,
-            minimum_latitude=MIN_LAT, maximum_latitude=MAX_LAT,
+            dataset_id=DATASET_ID, 
+            start_datetime=start_str, 
+            end_datetime=end_str,
+            minimum_longitude=MIN_LON, 
+            maximum_longitude=MAX_LON,
+            minimum_latitude=MIN_LAT, 
+            maximum_latitude=MAX_LAT,
             variables=["VHM0", "VTM02", "VMDR_WW"]
         )
-        # Wycinamy interesującą nas godzinę i OD RAZU ładujemy ją do RAMu jako dataset
-        wave_slice = ds.sel(time=wybrany_czas, method='nearest').load()
         
-        # Kluczowe: wyciągamy czyste wartości .values (tablice NumPy).
-        # Cache Streamlita uwielbia tablice NumPy i ładuje je w milisekundy.
-        dane = {
-            "lon": wave_slice['longitude'].values,
-            "lat": wave_slice['latitude'].values,
-            "VHM0": wave_slice['VHM0'].values,
-            "VTM02": wave_slice['VTM02'].values,
-            "VMDR_WW": wave_slice['VMDR_WW'].values
-        }
-        
-        # Zamykamy dataset, żeby zwolnić ukryte połączenia sieciowe
+        # Ładujemy cały przefiltrowany dataset bezpośrednio do RAMu serwera
+        ds_loaded = ds.load()
         ds.close()
-        return dane
+        
+        return ds_loaded
     except Exception as e:
-        st.error(f"Błąd pobierania danych: {e}")
+        st.error(f"Błąd pobierania bloku danych z Copernicus: {e}")
         st.stop()
 
 # --- INICJALIZACJA STANU SESJI (STATE) ---
+# Zaokrąglamy aktualny czas bazowy do pełnej godziny
+if 'base_time' not in st.session_state:
+    st.session_state.base_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+
 if 'current_time' not in st.session_state:
-    st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+    st.session_state.current_time = st.session_state.base_time
 
 if 'prog_filtra' not in st.session_state:
     st.session_state.prog_filtra = 0.5
 
+# --- JEDNORAZOWE POBRANIE DUŻEGO BLOKU (idzie do cache na podstawie base_time) ---
+with st.spinner("Pobieranie pakietu danych (-12h / +48h)..."):
+    pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time)
+
+# --- BŁYSKAWICZNE WYCIĘCIE AKTUALNEJ GODZINY Z RAMU ---
 wybrany_czas = st.session_state.current_time
 
-# --- POBRANIE I MATEMATYKA ---
-with st.spinner("Aktualizacja danych..."):
-    data_dict = pobierz_dane_godzinowe(wybrany_czas)
+try:
+    # Wycinamy tylko jedną klatkę czasową z gotowego obiektu w pamięci
+    wave_slice = pelny_dataset.sel(time=wybrany_czas, method='nearest')
     
-    lons_raw = data_dict["lon"]
-    lats_raw = data_dict["lat"]
-    h_signif = data_dict["VHM0"]
-    t_mean = data_dict["VTM02"]
-    vmdr_ww = data_dict["VMDR_WW"]
+    lons_raw = wave_slice['longitude'].values
+    lats_raw = wave_slice['latitude'].values
+    h_signif = wave_slice['VHM0'].values
+    t_mean = wave_slice['VTM02'].values
+    vmdr_ww = wave_slice['VMDR_WW'].values
+except Exception as e:
+    st.error(f"Wybrana godzina ({wybrany_czas.strftime('%Y-%m-%d %H:%M')}) wykracza poza zakres pobranej pamięci podręcznej.")
+    st.button("Zresetuj do teraz", on_click=lambda: st.session_state.update(current_time=st.session_state.base_time))
+    st.stop()
+
+# --- MATEMATYKA (Wykonuje się natychmiast na tablicach NumPy) ---
+with np.errstate(divide='ignore', invalid='ignore'):
+    wave_length = (9.81 * (t_mean ** 2)) / (2 * np.pi)
+    wave_steepness = h_signif / wave_length
     
-    with np.errstate(divide='ignore', invalid='ignore'):
-        wave_length = (9.81 * (t_mean ** 2)) / (2 * np.pi)
-        wave_steepness = h_signif / wave_length
-        
-    land_mask = np.where(np.isnan(h_signif), 1, np.nan)
-    wave_filtered = np.where(h_signif >= st.session_state.prog_filtra, wave_steepness, np.nan)
+land_mask = np.where(np.isnan(h_signif), 1, np.nan)
+wave_filtered = np.where(h_signif >= st.session_state.prog_filtra, wave_steepness, np.nan)
 
 # --- PALETY I KOLORY ---
 kolor_ladu = "#6b798d"  
@@ -92,11 +106,10 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE, BLOKADA ŁAMANIA ORAZ ODCHUDZENIE PRZYCISKÓW) ---
+# --- GLOBALNY STYL CSS ---
 st.markdown(
     """
     <style>
-    /* Zerowanie marginesów głównego kontenera Streamlit dla efektu Edge-to-Edge */
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 1rem !important;
@@ -104,7 +117,6 @@ st.markdown(
         padding-right: 0rem !important;
         max-width: 100% !important;
     }
-    /* Ukrycie systemowego paska nagłówka Streamlita */
     [data-testid="stHeader"] {
         display: none !important;
     }
@@ -116,35 +128,15 @@ st.markdown(
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(7, 7))
 ax1.set_facecolor('#404040')
-
-# Sztywne wymuszenie granic kadrowania na wykresie
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
 
-# --- UKRYCIE ETYKIET OSI ---
-ax1.tick_params(
-    axis='both',       
-    which='both',      
-    bottom=False,      
-    top=False,         
-    left=False,        
-    right=False,       
-    labelbottom=False, 
-    labelleft=False    
-)
+ax1.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False, labelbottom=False, labelleft=False)
 
 ax1.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]), zorder=1)
 im1 = ax1.pcolormesh(lons_raw, lats_raw, wave_filtered, cmap=cmap_stromość, vmin=0.0, vmax=0.1, zorder=2)
 
-# Pozioma skala na 100% szerokości pod wykresem
-fig1.colorbar(
-    im1, 
-    ax=ax1, 
-    orientation='horizontal',  
-    pad=0.02,                  
-    fraction=0.046,            
-    aspect=35                  
-)
+fig1.colorbar(im1, ax=ax1, orientation='horizontal', pad=0.02, fraction=0.046, aspect=35)
 
 try:
     s_lat, s_lon = 10, 12
@@ -168,8 +160,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-
-# --- NATYWNY I ELASTYCZNY PANEL STEROWANIA ---
+# --- PANEL STEROWANIA ---
 col_t1, col_t2, col_t3 = st.columns(3)
 
 if col_t1.button("-1h", use_container_width=True):
@@ -183,7 +174,6 @@ if col_t2.button("Teraz", use_container_width=True):
 if col_t3.button("+1h", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
-
 
 col_f1, col_f2, col_f3 = st.columns(3)
 
@@ -199,11 +189,9 @@ if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
-
-# --- 3. ZESTAW WIELOWYKRESOWY NA SAMYM DOLE (ZAKLESZCZONY NA STAŁE OBOK SIEBIE) ---
+# --- 3. ZESTAW WIELOWYKRESOWY NA DOLE ---
 fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(6, 3.75))
 
-# Lewy podwykres (Wysokość fali VHM0)
 ax2_d.set_facecolor('#202020')
 ax2_d.axis('off')
 ax2_d.set_xlim(MIN_LON, MAX_LON)
@@ -213,7 +201,6 @@ im2_d = ax2_d.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25
 fig_desktop.colorbar(im2_d, ax=ax2_d, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
 ax2_d.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
 
-# Prawy podwykres (Okres fali VTM02)
 ax3_d.set_facecolor('#202020')
 ax3_d.axis('off')
 ax3_d.set_xlim(MIN_LON, MAX_LON)
@@ -224,6 +211,4 @@ fig_desktop.colorbar(im3_d, ax=ax3_d, orientation='horizontal', pad=0.08, fracti
 ax3_d.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
 
 fig_desktop.tight_layout()
-
-# Renderowanie połączonego zestawu wykresów
 st.pyplot(fig_desktop)
