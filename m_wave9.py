@@ -178,19 +178,28 @@ st.markdown(
 
 
 # --- PANEL STEROWANIA ---
-col_t1, col_t2, col_t3 = st.columns(3)
+col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
 
 # Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
-if col_t1.button("-1h", use_container_width=True, key="time_btn_prev"):
+
+if col_t1.button("-6h", use_container_width=True, key="time_btn_prev"):
+    st.session_state.current_time -= timedelta(hours=6)
+    st.rerun()
+    
+if col_t2.button("-1h", use_container_width=True, key="time_btn_prev"):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
 
-if col_t2.button("Teraz", use_container_width=True, key="time_btn_now"):
+if col_t3.button("Teraz", use_container_width=True, key="time_btn_now"):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
 
-if col_t3.button("+1h", use_container_width=True, key="time_btn_next"):
+if col_t4.button("+1h", use_container_width=True, key="time_btn_next"):
     st.session_state.current_time += timedelta(hours=1)
+    st.rerun()
+    
+if col_t5.button("+6h", use_container_width=True, key="time_btn_next"):
+    st.session_state.current_time += timedelta(hours=6)
     st.rerun()
 
 
