@@ -194,7 +194,7 @@ if col_f3.button("+0.1m", use_container_width=True):
 
 
 # --- 3. ZESTAW WIELOWYKRESOWY NA SAMYM DOLE (ZAKLESZCZONY NA STAŁE OBOK SIEBIE) ---
-fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(4, 2))
+fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(4, 2.5))
 
 # Lewy podwykres (Wysokość fali VHM0)
 ax2_d.set_facecolor('#202020')
