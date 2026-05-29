@@ -212,7 +212,7 @@ if col_t5.button("+6h", use_container_width=True, key="time_btn_next6"):
     st.session_state.current_time += timedelta(hours=6)
     st.rerun()
 
-st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
+
 
 col_f1, col_f2, col_f3 = st.columns(3)
 
