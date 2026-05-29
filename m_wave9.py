@@ -22,7 +22,7 @@ st.markdown("""
 
 st.markdown("""
     <style>
-    .main > div {
+    section[data-testid="stMainBlockContainer"] {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
