@@ -7,8 +7,33 @@ from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
 
 
+
+
+
+# Konfiguracja strony Streamlit - układ dopasowany do telefonów
+st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
+
 st.markdown("""
     <style>
+    /* Usuń padding z głównego kontenera */
+    .block-container,
+    div.stMainBlockContainer,
+    section.main > div {
+        padding-top: 0rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        max-width: 100% !important;
+    }
+    /* Ukryj header Streamlit */
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    /* Usuń gap między elementami */
+    [data-testid="stVerticalBlock"] {
+        gap: 0rem !important;
+    }
+    /* Responsywne kolumny */
     div[data-testid="stHorizontalBlock"] {
         flex-wrap: nowrap !important;
     }
@@ -19,10 +44,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
-
-# Konfiguracja strony Streamlit - układ dopasowany do telefonów
-st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 MIN_LON, MAX_LON = 11.0, 15.0
@@ -123,26 +144,11 @@ cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
 # --- GLOBALNY STYL CSS ---
-st.markdown(
-    """
-    <style>
-    .block-container {
-        padding-top: 0rem !important;
-        padding-bottom: 1rem !important;
-        padding-left: 0rem !important;
-        padding-right: 0rem !important;
-        max-width: 100% !important;
-    }
-    [data-testid="stHeader"] {
-        display: none !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
 fig1, ax1 = plt.subplots(figsize=(7, 7))
+fig1.subplots_adjust(top=1, bottom=0, left=0, right=1)
 ax1.set_facecolor('#404040')
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
