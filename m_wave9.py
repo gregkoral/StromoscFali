@@ -9,9 +9,12 @@ from datetime import datetime, timedelta, UTC
 
 st.markdown("""
     <style>
-    /* Blokuj łamanie wierszy z przyciskami */
     div[data-testid="stHorizontalBlock"] {
         flex-wrap: nowrap !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
     }
     </style>
 """, unsafe_allow_html=True)
