@@ -161,27 +161,9 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- STYL CSS BLOKUJĄCY ŁAMANIE KOLUMNT CZASU ---
-st.markdown("""
-    <style>
-    /* Szukamy kontenera z naszymi przyciskami czasu i blokujemy łamanie w pionie */
-    div[data-testid="stHorizontalBlock"]:has(div[key^="time_btn_"]) {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        width: 100% !important;
-        gap: 8px !important; /* Odstęp między przyciskami */
-    }
-    /* Upewniamy się, że każda kolumna ma dokładnie tyle samo miejsca (33%) */
-    div[data-testid="stHorizontalBlock"]:has(div[key^="time_btn_"]) > div {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
-# --- PANEL STEROWANIA CZASEM (PEŁNA SZEROKOŚĆ, BEZ ŁAMANIA) ---
-col_t1, col_t2, col_t3 = st.columns(3)
+# --- PANEL STEROWANIA ---
+col_t1, col_t2, col_t3 = st.columns(2)
 
 # Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
 if col_t1.button("-1h", use_container_width=True, key="time_btn_prev"):
@@ -194,6 +176,20 @@ if col_t2.button("Teraz", use_container_width=True, key="time_btn_now"):
 
 if col_t3.button("+1h", use_container_width=True, key="time_btn_next"):
     st.session_state.current_time += timedelta(hours=1)
+    st.rerun()
+    
+    col_f1, col_f2, col_f3 = st.columns(3)
+
+if col_f1.button("-0.1m", use_container_width=True):
+    st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
+    st.rerun()
+
+if col_f2.button("Reset", use_container_width=True):
+    st.session_state.prog_filtra = 0.5
+    st.rerun()
+
+if col_f3.button("+0.1m", use_container_width=True):
+    st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
 
 
