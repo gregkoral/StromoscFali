@@ -174,11 +174,9 @@ if col_t2.button("Teraz", use_container_width=True, key="time_btn_now"):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
 
-if col_t3.button("+1h", use_container_width=True, key="time_btn_next"):
-    st.session_state.current_time += timedelta(hours=1)
-    st.rerun()
-    
-    col_f1, col_f2, col_f3 = st.columns(3)
+
+
+col_f1, col_f2, col_f3 = st.columns(3)
 
 if col_f1.button("-0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
