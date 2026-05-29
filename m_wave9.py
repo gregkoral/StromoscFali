@@ -24,7 +24,7 @@ def bezpieczne_logowanie():
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
 
-# Keszowanie danych - zoptymalizowane pod kątem wagi zapytania
+# Keszujemy wyłącznie czysty słownik z tablicami NumPy (błyskawiczna serializacja)
 @st.cache_data(show_spinner=False)
 def pobierz_dane_godzinowe(wybrany_czas):
     bezpieczne_logowanie()
@@ -32,19 +32,17 @@ def pobierz_dane_godzinowe(wybrany_czas):
     end_str = (wybrany_czas + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        # Dodano parametr variables, aby pobierać TYLKO 3 potrzebne zmienne
         ds = copernicusmarine.open_dataset(
-            dataset_id=DATASET_ID, 
-            start_datetime=start_str, 
-            end_datetime=end_str,
-            minimum_longitude=MIN_LON, 
-            maximum_longitude=MAX_LON,
-            minimum_latitude=MIN_LAT, 
-            maximum_latitude=MAX_LAT,
+            dataset_id=DATASET_ID, start_datetime=start_str, end_datetime=end_str,
+            minimum_longitude=MIN_LON, maximum_longitude=MAX_LON,
+            minimum_latitude=MIN_LAT, maximum_latitude=MAX_LAT,
             variables=["VHM0", "VTM02", "VMDR_WW"]
         )
+        # Wycinamy interesującą nas godzinę i OD RAZU ładujemy ją do RAMu jako dataset
         wave_slice = ds.sel(time=wybrany_czas, method='nearest').load()
         
+        # Kluczowe: wyciągamy czyste wartości .values (tablice NumPy).
+        # Cache Streamlita uwielbia tablice NumPy i ładuje je w milisekundy.
         dane = {
             "lon": wave_slice['longitude'].values,
             "lat": wave_slice['latitude'].values,
@@ -52,6 +50,9 @@ def pobierz_dane_godzinowe(wybrany_czas):
             "VTM02": wave_slice['VTM02'].values,
             "VMDR_WW": wave_slice['VMDR_WW'].values
         }
+        
+        # Zamykamy dataset, żeby zwolnić ukryte połączenia sieciowe
+        ds.close()
         return dane
     except Exception as e:
         st.error(f"Błąd pobierania danych: {e}")
