@@ -56,7 +56,7 @@ if 'current_time' not in st.session_state:
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
 
 if 'prog_filtra' not in st.session_state:
-    st.session_state.prog_filtra = 0.5
+    st.session_state.st.session_state.prog_filtra = 0.5
 
 wybrany_czas = st.session_state.current_time
 
@@ -85,7 +85,7 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE ORAZ PRZEŁĄCZNIK WIDOKÓW 500PX) ---
+# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE ORAZ BLOKADA ŁAMANIA PRZYCISKÓW) ---
 st.markdown(
     """
     <style>
@@ -102,14 +102,20 @@ st.markdown(
         display: none !important;
     }
 
-    /* Reguły dla dolnych mapek: domyślnie pokazuj wersję poziomą (desktop), ukryj pionową (mobilną) */
-    .wersja-mobilna { display: none !important; }
-    .wersja-desktop { display: block !important; }
-
-    /* Gdy ekran ma 500px lub mniej - odwracamy sytuację */
-    @media (max-width: 500px) {
-        .wersja-desktop { display: none !important; }
-        .wersja-mobilna { display: block !important; }
+    /* Wymuszenie stałego układu 3 kolumn dla przycisków na telefonach */
+    [data-testid="stHorizontalBlock"].matryca-przyciskow {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0.3rem !important;
+    }
+    [data-testid="stHorizontalBlock"].matryca-przyciskow > div [data-testid="column"] {
+        min-width: calc(33.33% - 0.2rem) !important;
+        max-width: calc(33.33% - 0.2rem) !important;
+        width: 33.33% !important;
+    }
+    /* Dodatkowy mały tuning estetyczny, żeby przyciski na mobile nie miały gigantycznych marginesów pionowych */
+    [data-testid="stHorizontalBlock"].matryca-przyciskow div[data-testid="stBtnBlock"] {
+        margin-bottom: 0.2rem !important;
     }
     </style>
     """,
@@ -124,7 +130,7 @@ ax1.set_facecolor('#404040')
 ax1.set_xlim(MIN_LON, MAX_LON)
 ax1.set_ylim(MIN_LAT, MAX_LAT)
 
-# --- UKRYCIE ETYKIET OSI (SZEROKOŚĆ I DŁUGOŚĆ GEO) ---
+# --- UKRYCIE ETYKIET OSI ---
 ax1.tick_params(
     axis='both',       
     which='both',      
@@ -172,7 +178,10 @@ st.markdown(
 )
 
 
-# --- PANEL STEROWANIA ---
+# --- 2. STAŁA MATRYCA PRZYCISKÓW (3x2) ZABEZPIECZONA PRZED ŁAMANIEM ---
+
+# WIERSZ 1: Czas (-1h | Teraz | +1h)
+st.markdown("<div class='matryca-przyciskow'>", unsafe_allow_html=True)
 col_t1, col_t2, col_t3 = st.columns(3)
 
 if col_t1.button("-1h", use_container_width=True):
@@ -186,8 +195,10 @@ if col_t2.button("Teraz", use_container_width=True):
 if col_t3.button("+1h", use_container_width=True):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
+st.markdown("</div>", unsafe_allow_html=True)
 
-
+# WIERSZ 2: Filtr (-0.1m | Reset | +0.1m)
+st.markdown("<div class='matryca-przyciskow'>", unsafe_allow_html=True)
 col_f1, col_f2, col_f3 = st.columns(3)
 
 if col_f1.button("-0.1m", use_container_width=True):
@@ -201,14 +212,13 @@ if col_f2.button("Reset", use_container_width=True):
 if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
+st.markdown("</div>", unsafe_allow_html=True)
 
 
-# 3. GENEROWANIE WARIANTÓW GRAFICZNYCH DLA DOLNYCH MAPEK
-
-# === WERSJA DESKTOP (Ekran > 500px): Mapki sklejone obok siebie na jednej figurze ===
+# --- 3. ZESTAW WIELOWYKRESOWY NA SAMYM DOLE (ZAKLESZCZONY NA STAŁE OBOK SIEBIE) ---
 fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(10, 5.2))
 
-# Lewy podwykres (VHM0)
+# Lewy podwykres (Wysokość fali VHM0)
 ax2_d.set_facecolor('#202020')
 ax2_d.axis('off')
 ax2_d.set_xlim(MIN_LON, MAX_LON)
@@ -218,7 +228,7 @@ im2_d = ax2_d.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25
 fig_desktop.colorbar(im2_d, ax=ax2_d, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
 ax2_d.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
 
-# Prawy podwykres (VTM02)
+# Prawy podwykres (Okres fali VTM02)
 ax3_d.set_facecolor('#202020')
 ax3_d.axis('off')
 ax3_d.set_xlim(MIN_LON, MAX_LON)
@@ -230,39 +240,5 @@ ax3_d.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
 
 fig_desktop.tight_layout()
 
-
-# === WERSJA MOBILNA (Ekran <= 500px): Dwie osobne figury rysowane pionowo ===
-fig_m1, ax2_m = plt.subplots(figsize=(5, 5.2))
-ax2_m.set_facecolor('#202020')
-ax2_m.axis('off')
-ax2_m.set_xlim(MIN_LON, MAX_LON)
-ax2_m.set_ylim(MIN_LAT, MAX_LAT)
-ax2_m.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-im2_m = ax2_m.pcolormesh(lons_raw, lats_raw, h_signif, cmap=cmap_vhm0, vmin=0.25, vmax=1.0)
-fig_m1.colorbar(im2_m, ax=ax2_m, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
-ax2_m.set_title("Wysokość fali (VHM0)", fontsize=11, color="white", pad=8)
-fig_m1.tight_layout()
-
-fig_m2, ax3_m = plt.subplots(figsize=(5, 5.2))
-ax3_m.set_facecolor('#202020')
-ax3_m.axis('off')
-ax3_m.set_xlim(MIN_LON, MAX_LON)
-ax3_m.set_ylim(MIN_LAT, MAX_LAT)
-ax3_m.pcolormesh(lons_raw, lats_raw, land_mask, cmap=LinearSegmentedColormap.from_list("lc", [kolor_ladu, kolor_ladu]))
-im3_m = ax3_m.pcolormesh(lons_raw, lats_raw, t_mean, cmap=cmap_vtm02, vmin=1.0, vmax=3.5)
-fig_m2.colorbar(im3_m, ax=ax3_m, orientation='horizontal', pad=0.08, fraction=0.046, aspect=20)
-ax3_m.set_title("Okres fali (VTM02)", fontsize=11, color="white", pad=8)
-fig_m2.tight_layout()
-
-
-# === WYŚWIETLANIE KONTENERÓW W DEPENDENCJI OD ROZDZIELCZOŚCI ===
-with st.container():
-    st.markdown("<div class='wersja-desktop'>", unsafe_allow_html=True)
-    st.pyplot(fig_desktop)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-with st.container():
-    st.markdown("<div class='wersja-mobilna'>", unsafe_allow_html=True)
-    st.pyplot(fig_m1)
-    st.pyplot(fig_m2)
-    st.markdown("</div>", unsafe_allow_html=True)
+# Renderowanie połączonego zestawu wykresów
+st.pyplot(fig_desktop)
