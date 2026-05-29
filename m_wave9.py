@@ -167,7 +167,6 @@ wybor_czasu = st.segmented_control(
     options=["-1h", "Teraz", "+1h"],
     default=None,
     selection_mode="single",
-    use_container_width=True,
     label_visibility="collapsed"
 )
 
