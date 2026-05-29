@@ -185,9 +185,9 @@ st.markdown(
 
 # --- PANEL STEROWANIA ---
 
-col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
+st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
 
-# Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
+col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
 
 if col_t1.button("-6h", use_container_width=True, key="time_btn_prev6"):
     st.session_state.current_time -= timedelta(hours=6)
@@ -209,6 +209,7 @@ if col_t5.button("+6h", use_container_width=True, key="time_btn_next6"):
     st.session_state.current_time += timedelta(hours=6)
     st.rerun()
 
+st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
 
 col_f1, col_f2, col_f3 = st.columns(3)
 
@@ -223,6 +224,8 @@ if col_f2.button("0.5m", use_container_width=True):
 if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
+
+st.markdown("<div style='margin-top: 16px;'></div>", unsafe_allow_html=True)
 
 
 # --- 3. ZESTAW WIELOWYKRESOWY NA DOLE ---
