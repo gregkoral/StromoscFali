@@ -6,6 +6,17 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
 
+
+st.markdown("""
+    <style>
+    /* Blokuj łamanie wierszy z przyciskami */
+    div[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # Konfiguracja strony Streamlit - układ dopasowany do telefonów
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 
@@ -163,71 +174,6 @@ st.markdown(
 
 
 # --- PANEL STEROWANIA ---
-
-import streamlit as st
-from datetime import timedelta, UTC
-from datetime import datetime
-
-# --- STYL CSS: BLOKOWANIE ŁAMANIA DLA WSZYSTKICH SIATEK PRZYCISKÓW ---
-st.markdown("""
-    <style>
-    /* Szukamy kontenerów z naszymi przyciskami siatki i blokujemy łamanie w pionie */
-    div[data-testid="stHorizontalBlock"]:has(div[key^="grid_btn_"]) {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        width: 100% !important;
-        gap: 8px !important; /* Odstęp poziomy między przyciskami */
-        margin-bottom: 8px !important; /* Odstęp pionowy między rzędami */
-    }
-    /* Upewniamy się, że każda kolumna w rzędzie ma dokładnie tyle samo miejsca (33%) */
-    div[data-testid="stHorizontalBlock"]:has(div[key^="grid_btn_"]) > div {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
-# --- RZĄD 1 (3 kolumny) ---
-st.write("**Nawigacja czasem:**")
-r1_col1, r1_col2, r1_col3 = st.columns(3)
-
-if r1_col1.button("-1h", use_container_width=True, key="grid_btn_r1_c1"):
-    st.session_state.current_time -= timedelta(hours=1)
-    st.rerun()
-
-if r1_col2.button("Teraz", use_container_width=True, key="grid_btn_r1_c2"):
-    st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
-    st.rerun()
-
-if r1_col3.button("+1h", use_container_width=True, key="grid_btn_r1_c3"):
-    st.session_state.current_time += timedelta(hours=1)
-    st.rerun()
-
-
-# --- RZĄD 2 (3 kolumny) ---
-st.write("**Filtr wysokości fal:**")
-r2_col1, r2_col2, r2_col3 = st.columns(3)
-
-if r2_col1.button("-0.1m", use_container_width=True, key="grid_btn_r2_c1"):
-    st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
-    st.rerun()
-
-if r2_col2.button("Reset", use_container_width=True, key="grid_btn_r2_c2"):
-    st.session_state.prog_filtra = 0.5
-    st.rerun()
-
-if r2_col3.button("+0.1m", use_container_width=True, key="grid_btn_r2_c3"):
-    st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
-    st.rerun()
-
-
-
-
-
-
-
 col_t1, col_t2, col_t3 = st.columns(3)
 
 # Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
