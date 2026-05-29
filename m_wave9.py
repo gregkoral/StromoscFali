@@ -197,9 +197,9 @@ st.markdown("""
     div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(5) button { background-color: #fb8500 !important; color: white !important; border: none !important; }
 
     /* Wiersz 2 - przyciski filtra (3 kolumny) */
-    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(1) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
-    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(2) button { background-color: #ffffff !important; color: white !important; border: none !important; }
-    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(3) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(6) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(7) button { background-color: #ffffff !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(8) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -237,7 +237,7 @@ if col_f1.button("-0.1m", use_container_width=True):
     st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
     st.rerun()
 
-if col_f2.button("Reset", use_container_width=True):
+if col_f2.button("0.5m", use_container_width=True):
     st.session_state.prog_filtra = 0.5
     st.rerun()
 
