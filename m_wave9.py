@@ -182,19 +182,6 @@ elif wybor_czasu == "+1h":
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
-col_f1, col_f2, col_f3 = st.columns(3)
-
-if col_f1.button("-0.1m", use_container_width=True):
-    st.session_state.prog_filtra = max(0.0, st.session_state.prog_filtra - 0.1)
-    st.rerun()
-
-if col_f2.button("Reset", use_container_width=True):
-    st.session_state.prog_filtra = 0.5
-    st.rerun()
-
-if col_f3.button("+0.1m", use_container_width=True):
-    st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
-    st.rerun()
 
 # --- 3. ZESTAW WIELOWYKRESOWY NA DOLE ---
 fig_desktop, (ax2_d, ax3_d) = plt.subplots(1, 2, figsize=(6, 3.75))
