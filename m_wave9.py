@@ -12,8 +12,8 @@ st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
-#DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
-DATASET_ID = "cmems_mod_glo_wav_anfc_0.083deg_PT1H-i"
+DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
+#DATASET_ID = "cmems_mod_glo_wav_anfc_0.083deg_PT1H-i"
 
 # Funkcja logowania
 def bezpieczne_logowanie():
