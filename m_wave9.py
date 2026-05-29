@@ -161,23 +161,38 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- NOWY PANEL STEROWANIA CZASEM ---
-wybor_czasu = st.segmented_control(
-    label="Nawigacja czasem",
-    options=["-1h", "Teraz", "+1h"],
-    default=None,
-    selection_mode="single",
-    label_visibility="collapsed"
-)
+# --- STYL CSS BLOKUJĄCY ŁAMANIE KOLUMNT CZASU ---
+st.markdown("""
+    <style>
+    /* Szukamy kontenera z naszymi przyciskami czasu i blokujemy łamanie w pionie */
+    div[data-testid="stHorizontalBlock"]:has(div[key^="time_btn_"]) {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        width: 100% !important;
+        gap: 8px !important; /* Odstęp między przyciskami */
+    }
+    /* Upewniamy się, że każda kolumna ma dokładnie tyle samo miejsca (33%) */
+    div[data-testid="stHorizontalBlock"]:has(div[key^="time_btn_"]) > div {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Obsługa kliknięcia w segment
-if wybor_czasu == "-1h":
+# --- PANEL STEROWANIA CZASEM (PEŁNA SZEROKOŚĆ, BEZ ŁAMANIA) ---
+col_t1, col_t2, col_t3 = st.columns(3)
+
+# Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
+if col_t1.button("-1h", use_container_width=True, key="time_btn_prev"):
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
-elif wybor_czasu == "Teraz":
+
+if col_t2.button("Teraz", use_container_width=True, key="time_btn_now"):
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-elif wybor_czasu == "+1h":
+
+if col_t3.button("+1h", use_container_width=True, key="time_btn_next"):
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
