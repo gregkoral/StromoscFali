@@ -85,11 +85,11 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- CSS ROZCIĄGAJĄCE STRONĘ NA 100% (BEZ MARGINESÓW I PADDINGÓW) ---
+# --- CSS ROZCIĄGAJĄCE STRONĘ I KONTROLUJĄCE ŁAMANIE ELEMENTÓW PONIŻEJ 800PX ---
 st.markdown(
     """
     <style>
-    /* Zerowanie marginesów głównego kontenera Streamit dla efektu Edge-to-Edge */
+    /* Zerowanie marginesów głównego kontenera Streamlit dla efektu Edge-to-Edge */
     .block-container {
         padding-top: 0rem !important;
         padding-bottom: 1rem !important;
@@ -101,13 +101,40 @@ st.markdown(
     [data-testid="stHeader"] {
         display: none !important;
     }
+
+    /* DOMYŚLNY UKŁAD (DLA DUŻYCH EKRANÓW > 800PX):
+       Mapki wyświetlają się ładnie obok siebie.
+    */
+    [data-testid="stHorizontalBlock"].dolne-mapki {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem !important;
+    }
+    [data-testid="stHorizontalBlock"].dolne-mapki > div {
+        min-width: calc(50% - 0.25rem) !important;
+        max-width: calc(50% - 0.25rem) !important;
+    }
+
+    /* UKŁAD DLA MNIEJSZYCH EKRANÓW (Media Query dla max-width: 800px):
+       Gdy szerokość okna/ekranu spada poniżej 800 pikseli,
+       wymuszamy złamanie struktury i układamy mapki pionowo.
+    */
+    @media (max-width: 800px) {
+        [data-testid="stHorizontalBlock"].dolne-mapki {
+            flex-direction: column !important;
+        }
+        [data-testid="stHorizontalBlock"].dolne-mapki > div {
+            min-width: 100% !important;
+            max-width: 100% !important;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # 1. GŁÓWNA MAPA (STROMOŚĆ FALI)
-fig1, ax1 = plt.subplots(figsize=(5, 5))
+fig1, ax1 = plt.subplots(figsize=(10, 10))
 ax1.set_facecolor('#404040')
 
 # Sztywne wymuszenie granic kadrowania na wykresie
@@ -191,7 +218,9 @@ if col_f2.button("Reset", use_container_width=True):
 if col_f3.button("+0.1m", use_container_width=True):
     st.session_state.prog_filtra = min(5.0, st.session_state.prog_filtra + 0.1)
     st.rerun()
-
+
+
+
 # 3. DWIE MAŁE MAPKI NA SAMYM DOLE (PIONOWY LAYOUT, BEZ OSI I PODPISÓW SKALI)
 col_map1, col_map2 = st.columns(2)
 
