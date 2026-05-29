@@ -24,7 +24,7 @@ def bezpieczne_logowanie():
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
 
-# Keszowanie danych
+# Keszowanie danych - zoptymalizowane pod kątem wagi zapytania
 @st.cache_data(show_spinner=False)
 def pobierz_dane_godzinowe(wybrany_czas):
     bezpieczne_logowanie()
@@ -32,10 +32,16 @@ def pobierz_dane_godzinowe(wybrany_czas):
     end_str = (wybrany_czas + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
     
     try:
+        # Dodano parametr variables, aby pobierać TYLKO 3 potrzebne zmienne
         ds = copernicusmarine.open_dataset(
-            dataset_id=DATASET_ID, start_datetime=start_str, end_datetime=end_str,
-            minimum_longitude=MIN_LON, maximum_longitude=MAX_LON,
-            minimum_latitude=MIN_LAT, maximum_latitude=MAX_LAT
+            dataset_id=DATASET_ID, 
+            start_datetime=start_str, 
+            end_datetime=end_str,
+            minimum_longitude=MIN_LON, 
+            maximum_longitude=MAX_LON,
+            minimum_latitude=MIN_LAT, 
+            maximum_latitude=MAX_LAT,
+            variables=["VHM0", "VTM02", "VMDR_WW"]
         )
         wave_slice = ds.sel(time=wybrany_czas, method='nearest').load()
         
