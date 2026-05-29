@@ -161,18 +161,24 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- PANEL STEROWANIA ---
-col_t1, col_t2, col_t3 = st.columns(3)
+# --- NOWY PANEL STEROWANIA CZASEM ---
+wybor_czasu = st.segmented_control(
+    label="Nawigacja czasem",
+    options=["-1h", "Teraz", "+1h"],
+    default=None,
+    selection_mode="single",
+    use_container_width=True,
+    label_visibility="collapsed"
+)
 
-if col_t1.button("-1h", use_container_width=True):
+# Obsługa kliknięcia w segment
+if wybor_czasu == "-1h":
     st.session_state.current_time -= timedelta(hours=1)
     st.rerun()
-
-if col_t2.button("Teraz", use_container_width=True):
+elif wybor_czasu == "Teraz":
     st.session_state.current_time = datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
     st.rerun()
-
-if col_t3.button("+1h", use_container_width=True):
+elif wybor_czasu == "+1h":
     st.session_state.current_time += timedelta(hours=1)
     st.rerun()
 
