@@ -85,7 +85,7 @@ cmap_stromość = LinearSegmentedColormap.from_list("stromość_custom", kolory_
 cmap_vhm0 = plt.cm.viridis
 cmap_vtm02 = plt.cm.plasma
 
-# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE ORAZ BLOKADA ŁAMANIA PRZYCISKÓW) ---
+# --- GLOBALNY STYL CSS (STRONA EDGE-TO-EDGE, BLOKADA ŁAMANIA ORAZ ODCHUDZENIE PRZYCISKÓW) ---
 st.markdown(
     """
     <style>
@@ -106,16 +106,27 @@ st.markdown(
     [data-testid="stHorizontalBlock"].matryca-przyciskow {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        gap: 0.3rem !important;
+        gap: 0.2rem !important; /* Mniejszy odstęp między kolumnami (lewo-prawo) */
+        margin-bottom: -0.5rem !important; /* Drastyczne zmniejszenie odstępu między wierszami (góra-dół) */
     }
     [data-testid="stHorizontalBlock"].matryca-przyciskow > div [data-testid="column"] {
-        min-width: calc(33.33% - 0.2rem) !important;
-        max-width: calc(33.33% - 0.2rem) !important;
+        min-width: calc(33.33% - 0.13rem) !important;
+        max-width: calc(33.33% - 0.13rem) !important;
         width: 33.33% !important;
     }
-    /* Dodatkowy mały tuning estetyczny, żeby przyciski na mobile nie miały gigantycznych marginesów pionowych */
+    
+    /* --- ZMNIEJSZENIE WYSOKOŚCI I ZAGĘSZCZENIE PRZYCISKÓW --- */
+    [data-testid="stHorizontalBlock"].matryca-przyciskow button {
+        padding-top: 4px !important;    /* Minimalny padding od góry */
+        padding-bottom: 4px !important; /* Minimalny padding od dołu */
+        min-height: 28px !important;    /* Wymuszenie mniejszej wysokości całkowitej */
+        line-height: 1.2 !important;     /* Niższa linia tekstu */
+    }
+    
+    /* Usunięcie domyślnych gigantycznych marginesów kontenerów Streamlita wokół przycisków */
     [data-testid="stHorizontalBlock"].matryca-przyciskow div[data-testid="stBtnBlock"] {
-        margin-bottom: 0.2rem !important;
+        margin-bottom: 0rem !important;
+        padding-bottom: 0rem !important;
     }
     </style>
     """,
