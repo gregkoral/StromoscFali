@@ -163,7 +163,7 @@ st.markdown(
 
 
 # --- PANEL STEROWANIA ---
-col_t1, col_t2, col_t3 = st.columns(2)
+col_t1, col_t2, col_t3 = st.columns(3)
 
 # Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
 if col_t1.button("-1h", use_container_width=True, key="time_btn_prev"):
