@@ -178,6 +178,34 @@ st.markdown(
 
 
 # --- PANEL STEROWANIA ---
+
+st.markdown("""
+    <style>
+    div[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+    }
+    div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+        min-width: 0 !important;
+        flex: 1 1 0 !important;
+    }
+
+    /* Wiersz 1 - przyciski czasowe (5 kolumn) */
+    div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(1) button { background-color: #fb8500 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(2) button { background-color: #fb8500 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(3) button { background-color: #ffffff !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(4) button { background-color: #fb8500 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div:nth-child(5) button { background-color: #fb8500 !important; color: white !important; border: none !important; }
+
+    /* Wiersz 2 - przyciski filtra (3 kolumny) */
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(1) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(2) button { background-color: #ffffff !important; color: white !important; border: none !important; }
+    div[data-testid="stHorizontalBlock"]:nth-of-type(2) > div:nth-child(3) button { background-color: #8ecae6 !important; color: white !important; border: none !important; }
+    </style>
+""", unsafe_allow_html=True)
+
+
+
+
 col_t1, col_t2, col_t3, col_t4, col_t5 = st.columns(5)
 
 # Dodajemy unikalny prefiks do klucza (key), aby CSS mógł precyzyjnie namierzyć te przyciski
