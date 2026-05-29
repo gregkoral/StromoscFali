@@ -117,8 +117,8 @@ st.markdown(
     
     /* --- ZMNIEJSZENIE WYSOKOŚCI I ZAGĘSZCZENIE PRZYCISKÓW --- */
     [data-testid="stHorizontalBlock"].matryca-przyciskow button {
-        padding-top: 4px !important;    /* Minimalny padding od góry */
-        padding-bottom: 4px !important; /* Minimalny padding od dołu */
+        padding-top: 0px !important;    /* Minimalny padding od góry */
+        padding-bottom: 0px !important; /* Minimalny padding od dołu */
         min-height: 28px !important;    /* Wymuszenie mniejszej wysokości całkowitej */
         line-height: 1.2 !important;     /* Niższa linia tekstu */
     }
