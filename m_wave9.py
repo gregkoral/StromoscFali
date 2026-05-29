@@ -16,6 +16,11 @@ st.markdown("""
         min-width: 0 !important;
         flex: 1 1 0 !important;
     }
+    /* Margines od krawędzi strony */
+    div[data-testid="stAppViewBlockContainer"] {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
