@@ -1,3 +1,23 @@
+import sys
+import subprocess
+
+# ==============================================================================
+# AUTOMATYCZNA INSTALACJA / WERYFIKACJA BIBLIOTEK
+# ==============================================================================
+required_libraries = ["streamlit", "copernicusmarine", "xarray", "matplotlib", "numpy"]
+installed_any = False
+
+for lib in required_libraries:
+    try:
+        __import__(lib)
+    except ImportError:
+        print(f"Brak biblioteki '{lib}'. Instalacja w toku...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
+        installed_any = True
+
+# ==============================================================================
+# WŁAŚCIWY PROGRAM
+# ==============================================================================
 import streamlit as st
 import copernicusmarine
 import xarray as xr
@@ -7,12 +27,10 @@ from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
 import time
 
-
 # =========================
 # STREAMLIT CONFIG
 # =========================
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
-
 
 # =========================
 # CONSTANTS
@@ -21,34 +39,19 @@ MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
-
 # =========================
-# CACHE DATASET (LAZY)
+# CACHE DATASET (ZAKTUALIZOWANE API COPERNICUS)
 # =========================
 @st.cache_resource(show_spinner=False)
-def get_dataset(base_time):
-
-    start_time = base_time - timedelta(hours=12)
-    end_time = base_time + timedelta(hours=48)
-
+def get_dataset():
+    # Nowe API wymaga otwarcia pełnego datasetu. Xarray obsługuje to leniwie (lazy-loading),
+    # więc pobierane są tylko metadane – operacja jest natychmiastowa.
     ds = copernicusmarine.open_dataset(
         dataset_id=DATASET_ID,
         username=st.secrets["COPERNICUS_USERNAME"],
-        password=st.secrets["COPERNICUS_PASSWORD"],
-
-        start_datetime=start_time.strftime("%Y-%m-%d %H:%M:%S"),
-        end_datetime=end_time.strftime("%Y-%m-%d %H:%M:%S"),
-
-        minimum_longitude=MIN_LON,
-        maximum_longitude=MAX_LON,
-        minimum_latitude=MIN_LAT,
-        maximum_latitude=MAX_LAT,
-
-        variables=["VHM0", "VTM02", "VMDR_WW"]
+        password=st.secrets["COPERNICUS_PASSWORD"]
     )
-
-    return ds  # ❗ BEZ .load()
-
+    return ds
 
 # =========================
 # SESSION STATE
@@ -64,26 +67,28 @@ if "current_time" not in st.session_state:
 if "prog_filtra" not in st.session_state:
     st.session_state.prog_filtra = 0.5
 
+# =========================
+# LOAD DATASET
+# =========================
+with st.spinner("Ładowanie metadanych Copernicus (lazy)..."):
+    ds_full = get_dataset()
 
 # =========================
-# LOAD DATASET (FAST)
-# =========================
-with st.spinner("Ładowanie danych (lazy)..."):
-    ds = get_dataset(st.session_state.base_time)
-
-
-# =========================
-# TIME SLICE (IMPORTANT OPTIMIZATION)
+# TIME & SPACE SLICE (PRZENIESIENIE FILTROWANIA DO XARRAY)
 # =========================
 t0 = time.time()
 
-wave_slice = ds.sel(
+# Nowe API: Filtrowanie współrzędnych, czasu i zmiennych odbywa się za pomocą xarray.
+# Pobieramy mały wycinek danych (.load()) dopiero w tym momencie, co gwarantuje szybkość.
+wave_slice = ds_full[[ "VHM0", "VTM02", "VMDR_WW" ]].sel(
+    longitude=slice(MIN_LON, MAX_LON),
+    latitude=slice(MIN_LAT, MAX_LAT),
     time=st.session_state.current_time,
     method="nearest"
-).load()   # ❗ load tylko 1 klatki
+).load()
 
-st.sidebar.write(f"slice load: {time.time()-t0:.2f}s")
-
+slice_load_time = time.time() - t0
+st.sidebar.write(f"slice load: {slice_load_time:.2f}s")
 
 # =========================
 # DATA
@@ -94,7 +99,6 @@ h_signif = wave_slice["VHM0"].values
 t_mean = wave_slice["VTM02"].values
 vmdr_ww = wave_slice["VMDR_WW"].values
 
-
 # =========================
 # MATH
 # =========================
@@ -104,7 +108,6 @@ with np.errstate(divide="ignore", invalid="ignore"):
 
 land_mask = np.where(np.isnan(h_signif), 1, np.nan)
 wave_filtered = np.where(h_signif >= st.session_state.prog_filtra, wave_steepness, np.nan)
-
 
 # =========================
 # MAP
@@ -130,7 +133,6 @@ fig.colorbar(im, ax=ax, orientation="horizontal")
 
 st.pyplot(fig)
 plt.close(fig)
-
 
 # =========================
 # UI
@@ -160,3 +162,16 @@ if col4.button("+1h"):
 if col5.button("+6h"):
     st.session_state.current_time += timedelta(hours=6)
     st.rerun()
+
+# ==============================================================================
+# PODSUMOWANIE REZULTATÓW I ZAMKNIĘCIE (KONSOLA)
+# ==============================================================================
+print("\n" + "="*50)
+print("PODSUMOWANIE DZIAŁANIA APLIKACJI")
+print("="*50)
+print(f"Status instalacji bibliotek: {'Zaktualizowano brakujące' if installed_any else 'Wszystkie obecne'}")
+print(f"Wybrany punkt czasowy (UTC): {st.session_state.current_time}")
+print(f"Czas pobierania i cięcia danych: {slice_load_time:.2f} sekundy")
+print(f"Rozmiar wygenerowanej siatki danych: {wave_filtered.shape}")
+print("="*50)
+input("Naciśnij [ENTER], aby zakończyć działanie skryptu podsumowującego...")
