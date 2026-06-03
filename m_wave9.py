@@ -67,12 +67,13 @@ def pobierz_pelny_blok_danych(odniesienie_czasu, username, password):
     start_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
-    sciezka_tymczasowa = "temp_baltic_wave.nc"
+    # Zapis w /tmp/ zapobiega pętli auto-reloadu Streamlita
+    sciezka_tymczasowa = "/tmp/temp_baltic_wave.nc"
     
     try:
         print(f"LOG: Wywoływanie copernicusmarine.subset dla {DATASET_ID}...", flush=True)
         
-        # Pobieramy fizyczny plik NetCDF
+        # Usunięto przestarzały parametr force_download
         copernicusmarine.subset(
             dataset_id=DATASET_ID,
             username=username,
@@ -84,8 +85,7 @@ def pobierz_pelny_blok_danych(odniesienie_czasu, username, password):
             minimum_latitude=MIN_LAT,
             maximum_latitude=MAX_LAT,
             variables=["VHM0", "VTM02", "VMDR_WW"],
-            output_filename=sciezka_tymczasowa,
-            force_download=True
+            output_filename=sciezka_tymczasowa
         )
         
         print("LOG: Plik pobrany. Otwieranie lokalnego pliku przez xarray...", flush=True)
@@ -119,7 +119,6 @@ if 'prog_filtra' not in st.session_state:
     st.session_state.prog_filtra = 0.5
 
 # --- JEDNORAZOWE POBRANIE DUŻEGO BLOKU ---
-# Pobieranie danych logowania z Secrets na poziomie głównym aplikacji
 try:
     c_user = st.secrets["COPERNICUS_USERNAME"]
     c_pass = st.secrets["COPERNICUS_PASSWORD"]
@@ -127,13 +126,12 @@ except Exception as e:
     st.error(f"Błąd odczytu st.secrets: {e}")
     st.stop()
 
-# Interfejs statusu wyświetlany bezpiecznie poza funkcją cache
 status_placeholder = st.empty()
-status_placeholder.markdown(f"⏳ **Pobieranie danych z Copernicus Marine...**<br><small>Może to zająć do kilkunastu sekund</small>", unsafe_allow_html=True)
+status_placeholder.markdown(f"⏳ **Pobieranie danych z Copernicus Marine...**<br><small>Trwa generowanie wycinka mapy</small>", unsafe_allow_html=True)
 
 try:
     pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time, c_user, c_pass)
-    status_placeholder.empty() # Usuń komunikat po udanym pobraniu
+    status_placeholder.empty() 
 except Exception as err:
     status_placeholder.markdown(f"❌ **Błąd pobierania danych:** {err}")
     st.stop()
