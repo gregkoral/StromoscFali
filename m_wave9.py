@@ -6,14 +6,16 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
 
+st.write("Copernicus Toolbox:", copernicusmarine.__version__)
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
-
+st.write("Dataset:", DATASET_ID)
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
 
 # Aktualny produkt Bałtyk: Baltic Sea Wave Analysis and Forecast
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
+st.write("Dataset:", DATASET_ID)
 
 
 
