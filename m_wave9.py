@@ -15,21 +15,10 @@ MIN_LAT, MAX_LAT = 53.5, 56.5
 # Aktualny produkt Bałtyk: Baltic Sea Wave Analysis and Forecast
 DATASET_ID = "BALTICSEA_ANALYSISFORECAST_WAV_003_010"
 
-def bezpieczne_logowanie():
-    try:
-        # Nowy Toolbox potrafi korzystać z zapisanych credentiali
-        # albo poprosić o logowanie przy pierwszym uruchomieniu.
-        copernicusmarine.login()
-    except Exception as e:
-        st.error(
-            f"Błąd autoryzacji Copernicus: {e}. "
-            f"Sprawdź dane logowania lub plik .copernicusmarine-credentials."
-        )
-        st.stop()
+
 
 @st.cache_data(show_spinner=False)
 def pobierz_pelny_blok_danych(odniesienie_czasu):
-    bezpieczne_logowanie()
 
     start_time = odniesienie_czasu - timedelta(hours=12)
     end_time = odniesienie_czasu + timedelta(hours=48)
@@ -37,19 +26,33 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     try:
         ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID,
-            start_datetime=start_time.strftime("%Y-%m-%d %H:%M:%S"),
-            end_datetime=end_time.strftime("%Y-%m-%d %H:%M:%S"),
+
+            username=st.secrets["COPERNICUS_USERNAME"],
+            password=st.secrets["COPERNICUS_PASSWORD"],
+
+            start_datetime=start_time,
+            end_datetime=end_time,
+
             minimum_longitude=MIN_LON,
             maximum_longitude=MAX_LON,
             minimum_latitude=MIN_LAT,
             maximum_latitude=MAX_LAT,
-            variables=["VHM0", "VTM02", "VMDR_WW"],
+
+            variables=[
+                "VHM0",
+                "VTM02",
+                "VMDR_WW"
+            ],
+
+            coordinates_selection_method="inside"
         )
+
         ds_loaded = ds.load()
-        ds.close()
+
         return ds_loaded
+
     except Exception as e:
-        st.error(f"Błąd pobierania bloku danych z Copernicus: {e}")
+        st.error(f"Błąd pobierania danych Copernicus: {e}")
         st.stop()
 
 # --- INICJALIZACJA STANU SESJI (STATE) ---
@@ -73,12 +76,21 @@ wybrany_czas = st.session_state.current_time
 try:
     # Wycinamy tylko jedną klatkę czasową z gotowego obiektu w pamięci
     wave_slice = pelny_dataset.sel(time=wybrany_czas, method='nearest')
-    
-    lons_raw = wave_slice['longitude'].values
-    lats_raw = wave_slice['latitude'].values
+
+if "longitude" in wave_slice.coords:
+    lons_raw = wave_slice["longitude"].values
+else:
+    lons_raw = wave_slice["lon"].values
+
+if "latitude" in wave_slice.coords:
+    lats_raw = wave_slice["latitude"].values
+else:
+    lats_raw = wave_slice["lat"].values
+
     h_signif = wave_slice['VHM0'].values
     t_mean = wave_slice['VTM02'].values
     vmdr_ww = wave_slice['VMDR_WW'].values
+
 except Exception as e:
     st.error(f"Wybrana godzina ({wybrany_czas.strftime('%Y-%m-%d %H:%M')}) wykracza poza zakres pobranej pamięci podręcznej.")
     st.button("Zresetuj do teraz", on_click=lambda: st.session_state.update(current_time=st.session_state.base_time))
