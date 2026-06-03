@@ -13,7 +13,7 @@ MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
 
 # Aktualny produkt Bałtyk: Baltic Sea Wave Analysis and Forecast
-DATASET_ID = "BALTICSEA_ANALYSISFORECAST_WAV_003_010"
+DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 
 
