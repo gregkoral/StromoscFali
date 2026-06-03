@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
-import sys # Dodane do wymuszenia opróżniania bufora konsoli
+import sys
 
 
 
@@ -61,11 +61,16 @@ def bezpieczne_logowanie(status_placeholder):
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
         
-        status_placeholder.markdown("⏳ **Krok 1/4:** Logowanie do Copernicus Marine...")
+        status_placeholder.markdown("⏳ **Krok 1/4:** Logowanie do Copernicus Marine (In-Memory)...")
         print("LOG: Rozpoczęto logowanie do Copernicus...", flush=True)
         
-        # Wymuszamy czyszczenie cache konfiguracji logowania, jeśli tam tkwi błąd
-        copernicusmarine.login(username=username, password=password, force_download=True)
+        # skip_configuration chroni przed blokowaniem zapisu pliku credentials na serwerze
+        copernicusmarine.login(
+            username=username, 
+            password=password, 
+            skip_configuration=True,
+            overwrite_configuration=False
+        )
         
         status_placeholder.markdown("✅ **Krok 1/4:** Autoryzacja powiodła się!")
         print("LOG: Logowanie powiodło się.", flush=True)
