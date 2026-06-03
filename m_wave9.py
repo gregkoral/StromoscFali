@@ -27,7 +27,7 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_time = odniesienie_czasu + timedelta(hours=48)
 
     try:
-        ds = copernicusmarine.open_dataset(
+        ds = copernicusmarine.subset(
             dataset_id=DATASET_ID,
 
             username=st.secrets["COPERNICUS_USERNAME"],
