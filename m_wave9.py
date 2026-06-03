@@ -19,9 +19,6 @@ st.write("Dataset:", DATASET_ID)
 
 
 
-
-
-
 @st.cache_data(show_spinner=False)
 def pobierz_pelny_blok_danych(odniesienie_czasu):
 
@@ -48,13 +45,10 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
                 "VTM02",
                 "VMDR_WW"
             ],
-
-            coordinates_selection_method="inside"
         )
 
-        ds_loaded = ds.load()
-
-        return ds_loaded
+        # subset zwraca dataset od razu (nie trzeba open_dataset + load)
+        return ds
 
     except Exception as e:
         st.error(f"Błąd pobierania danych Copernicus: {e}")
@@ -79,7 +73,6 @@ with st.spinner("Pobieranie pakietu danych (-12h / +48h)..."):
 wybrany_czas = st.session_state.current_time
 
 try:
-    # Wycinamy tylko jedną klatkę czasową z gotowego obiektu w pamięci
     wave_slice = pelny_dataset.sel(time=wybrany_czas, method='nearest')
 
     if "longitude" in wave_slice.coords:
