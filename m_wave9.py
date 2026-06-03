@@ -32,15 +32,12 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     start_str = (odniesienie_czasu - timedelta(hours=12)).strftime('%Y-%m-%d %H:%M:%S')
     end_str = (odniesienie_czasu + timedelta(hours=48)).strftime('%Y-%m-%d %H:%M:%S')
     
-    # Wykorzystanie nowego API open_dataset zintegrowanego z parametrami przycinania
+    # Aktualizacja do nowego API open_dataset z nowymi nazwami parametrów podsieci (subset)
     ds = copernicusmarine.open_dataset(
         dataset_id=DATASET_ID,
-        minimum_longitude=MIN_LON,
-        maximum_longitude=MAX_LON,
-        minimum_latitude=MIN_LAT,
-        maximum_latitude=MAX_LAT,
-        start_datetime=start_str,
-        end_datetime=end_str,
+        longitude=[MIN_LON, MAX_LON],
+        latitude=[MIN_LAT, MAX_LAT],
+        time=[start_str, end_str],
         variables=["VHM0", "VTM02"]
     )
     
@@ -159,3 +156,5 @@ try:
     
     fig_desktop.tight_layout()
     st.pyplot(fig_desktop)
+except Exception as e:
+    st.error(f"Błąd przetwarzania danych: {e}")
