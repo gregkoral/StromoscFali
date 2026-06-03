@@ -55,36 +55,19 @@ MIN_LAT, MAX_LAT = 53.5, 56.5
 DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 #DATASET_ID = "cmems_mod_glo_wav_anfc_0.083deg_PT1H-i"
 
-# Funkcja logowania
-def bezpieczne_logowanie(status_placeholder):
-    try:
-        username = st.secrets["COPERNICUS_USERNAME"]
-        password = st.secrets["COPERNICUS_PASSWORD"]
-        
-        status_placeholder.markdown("⏳ **Krok 1/4:** Logowanie do Copernicus Marine (In-Memory)...")
-        print("LOG: Rozpoczęto logowanie do Copernicus...", flush=True)
-        
-        # skip_configuration chroni przed blokowaniem zapisu pliku credentials na serwerze
-        copernicusmarine.login(
-            username=username, 
-            password=password, 
-            skip_configuration=True,
-            overwrite_configuration=False
-        )
-        
-        status_placeholder.markdown("✅ **Krok 1/4:** Autoryzacja powiodła się!")
-        print("LOG: Logowanie powiodło się.", flush=True)
-    except Exception as e:
-        print(f"LOG BŁĄD LOGOWANIA: {e}", flush=True)
-        st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
-        st.stop()
 
 # --- NOWE, ULTRA-SZYBKIE KESZOWANIE BLOKU DANYCH (-12h do +48h) ---
 @st.cache_data(show_spinner=False)
 def pobierz_pelny_blok_danych(odniesienie_czasu):
-    # Tworzymy dynamiczny kontener wewnątrz funkcji keszowanej
     status = st.empty()
-    bezpieczne_logowanie(status)
+    
+    # Pobieranie danych logowania z Secrets
+    try:
+        username = st.secrets["COPERNICUS_USERNAME"]
+        password = st.secrets["COPERNICUS_PASSWORD"]
+    except Exception as e:
+        st.error(f"Błąd odczytu st.secrets: {e}")
+        st.stop()
     
     # Definiujemy ramy czasowe: 12 godzin w tył, 48 godzin w przód
     start_time = odniesienie_czasu - timedelta(hours=12)
@@ -94,12 +77,14 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        status.markdown(f"⏳ **Krok 2/4:** Otwieranie połączenia ze zbiorem danych...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
-        print(f"LOG: Wywoływanie open_dataset dla {DATASET_ID}...", flush=True)
+        status.markdown(f"⏳ **Krok 1/3:** Otwieranie połączenia i bezpośrednia autoryzacja...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
+        print(f"LOG: Wywoływanie open_dataset z bezpośrednimi credentials dla {DATASET_ID}...", flush=True)
         
-        # Pobieramy CAŁY zakres czasu i TYLKO 3 potrzebne zmienne
+        # Przekazujemy username i password bezpośrednio tutaj, pomijając copernicusmarine.login()
         ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID, 
+            username=username,
+            password=password,
             start_datetime=start_str, 
             end_datetime=end_str,
             minimum_longitude=MIN_LON, 
@@ -109,13 +94,13 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             variables=["VHM0", "VTM02", "VMDR_WW"]
         )
         
-        status.markdown("⏳ **Krok 3/4:** Pobieranie i ładowanie struktur do pamięci RAM...")
+        status.markdown("⏳ **Krok 2/3:** Pobieranie i ładowanie struktur do pamięci RAM...")
         print("LOG: open_dataset zakończone. Rozpoczynanie ds.load()...", flush=True)
         
         # Ładujemy cały przefiltrowany dataset bezpośrednio do RAMu serwera
         ds_loaded = ds.load()
         
-        status.markdown("⏳ **Krok 4/4:** Zamykanie strumieni sieciowych...")
+        status.markdown("⏳ **Krok 3/3:** Zamykanie strumieni sieciowych...")
         print("LOG: ds.load() zakończone pomyślnie. Zamykanie obiektu...", flush=True)
         ds.close()
         
