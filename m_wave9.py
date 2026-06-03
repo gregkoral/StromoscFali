@@ -77,10 +77,10 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        status.markdown(f"⏳ **Krok 1/3:** Otwieranie połączenia i bezpośrednia autoryzacja...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
-        print(f"LOG: Wywoływanie open_dataset z bezpośrednimi credentials dla {DATASET_ID}...", flush=True)
+        status.markdown(f"⏳ **Krok 1/3:** Otwieranie stabilnego połączenia NetCDF...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
+        print(f"LOG: Wywoływanie open_dataset (NetCDF) dla {DATASET_ID}...", flush=True)
         
-        # Przekazujemy username i password bezpośrednio tutaj, pomijając copernicusmarine.login()
+        # Wymuszamy service="netcdf" aby ominąć błędy asynchronicznego pobierania zarr3
         ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID, 
             username=username,
@@ -91,7 +91,8 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             maximum_longitude=MAX_LON,
             minimum_latitude=MIN_LAT, 
             maximum_latitude=MAX_LAT,
-            variables=["VHM0", "VTM02", "VMDR_WW"]
+            variables=["VHM0", "VTM02", "VMDR_WW"],
+            service="netcdf"
         )
         
         status.markdown("⏳ **Krok 2/3:** Pobieranie i ładowanie struktur do pamięci RAM...")
