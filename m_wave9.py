@@ -59,7 +59,9 @@ def bezpieczne_logowanie():
     try:
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
-        copernicusmarine.login(username=username, password=password)
+        with st.spinner("Autoryzacja w Copernicus Marine..."):
+            copernicusmarine.login(username=username, password=password)
+        st.success("Autoryzacja powiodła się!")
     except Exception as e:
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
@@ -77,6 +79,7 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
+        st.info(f"Nawiązywanie połączenia i zapytanie o zbiór: {DATASET_ID}")
         # Pobieramy CAŁY zakres czasu i TYLKO 3 potrzebne zmienne
         ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID, 
@@ -89,10 +92,12 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             variables=["VHM0", "VTM02", "VMDR_WW"]
         )
         
+        st.info("Pobieranie i ładowanie wycinka danych do pamięci RAM...")
         # Ładujemy cały przefiltrowany dataset bezpośrednio do RAMu serwera
         ds_loaded = ds.load()
         ds.close()
         
+        st.success("Pakiet danych został pomyślnie załadowany!")
         return ds_loaded
     except Exception as e:
         st.error(f"Błąd pobierania bloku danych z Copernicus: {e}")
@@ -113,7 +118,7 @@ if 'prog_filtra' not in st.session_state:
 with st.spinner("Pobieranie pakietu danych (-12h / +48h)..."):
     pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time)
 
-# --- BŁYSKAWICZNE WYCIĘCIE AKTUALNEJ GODZINY Z RAMU ---
+# --- BŁYSKAWICZNE WYCIĘCIE AKTUALNEY GODZINY Z RAMU ---
 wybrany_czas = st.session_state.current_time
 
 try:
