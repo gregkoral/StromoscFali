@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
+import sys # Dodane do wymuszenia opróżniania bufora konsoli
 
 
 
@@ -55,21 +56,30 @@ DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 #DATASET_ID = "cmems_mod_glo_wav_anfc_0.083deg_PT1H-i"
 
 # Funkcja logowania
-def bezpieczne_logowanie():
+def bezpieczne_logowanie(status_placeholder):
     try:
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
-        with st.spinner("Autoryzacja w Copernicus Marine..."):
-            copernicusmarine.login(username=username, password=password)
-        st.success("Autoryzacja powiodła się!")
+        
+        status_placeholder.markdown("⏳ **Krok 1/4:** Logowanie do Copernicus Marine...")
+        print("LOG: Rozpoczęto logowanie do Copernicus...", flush=True)
+        
+        # Wymuszamy czyszczenie cache konfiguracji logowania, jeśli tam tkwi błąd
+        copernicusmarine.login(username=username, password=password, force_download=True)
+        
+        status_placeholder.markdown("✅ **Krok 1/4:** Autoryzacja powiodła się!")
+        print("LOG: Logowanie powiodło się.", flush=True)
     except Exception as e:
+        print(f"LOG BŁĄD LOGOWANIA: {e}", flush=True)
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
 
 # --- NOWE, ULTRA-SZYBKIE KESZOWANIE BLOKU DANYCH (-12h do +48h) ---
 @st.cache_data(show_spinner=False)
 def pobierz_pelny_blok_danych(odniesienie_czasu):
-    bezpieczne_logowanie()
+    # Tworzymy dynamiczny kontener wewnątrz funkcji keszowanej
+    status = st.empty()
+    bezpieczne_logowanie(status)
     
     # Definiujemy ramy czasowe: 12 godzin w tył, 48 godzin w przód
     start_time = odniesienie_czasu - timedelta(hours=12)
@@ -79,7 +89,9 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        st.info(f"Nawiązywanie połączenia i zapytanie o zbiór: {DATASET_ID}")
+        status.markdown(f"⏳ **Krok 2/4:** Otwieranie połączenia ze zbiorem danych...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
+        print(f"LOG: Wywoływanie open_dataset dla {DATASET_ID}...", flush=True)
+        
         # Pobieramy CAŁY zakres czasu i TYLKO 3 potrzebne zmienne
         ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID, 
@@ -92,14 +104,22 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             variables=["VHM0", "VTM02", "VMDR_WW"]
         )
         
-        st.info("Pobieranie i ładowanie wycinka danych do pamięci RAM...")
+        status.markdown("⏳ **Krok 3/4:** Pobieranie i ładowanie struktur do pamięci RAM...")
+        print("LOG: open_dataset zakończone. Rozpoczynanie ds.load()...", flush=True)
+        
         # Ładujemy cały przefiltrowany dataset bezpośrednio do RAMu serwera
         ds_loaded = ds.load()
+        
+        status.markdown("⏳ **Krok 4/4:** Zamykanie strumieni sieciowych...")
+        print("LOG: ds.load() zakończone pomyślnie. Zamykanie obiektu...", flush=True)
         ds.close()
         
-        st.success("Pakiet danych został pomyślnie załadowany!")
+        status.empty() # Czyszczenie komunikatu po sukcesie
+        print("LOG: Pobieranie danych zakończone sukcesem.", flush=True)
         return ds_loaded
     except Exception as e:
+        print(f"LOG BŁĄD POBIERANIA: {e}", flush=True)
+        status.markdown(f"❌ **Błąd:** {e}")
         st.error(f"Błąd pobierania bloku danych z Copernicus: {e}")
         st.stop()
 
@@ -115,8 +135,7 @@ if 'prog_filtra' not in st.session_state:
     st.session_state.prog_filtra = 0.5
 
 # --- JEDNORAZOWE POBRANIE DUŻEGO BLOKU (idzie do cache na podstawie base_time) ---
-with st.spinner("Pobieranie pakietu danych (-12h / +48h)..."):
-    pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time)
+pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time)
 
 # --- BŁYSKAWICZNE WYCIĘCIE AKTUALNEY GODZINY Z RAMU ---
 wybrany_czas = st.session_state.current_time
