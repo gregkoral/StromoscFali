@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from datetime import datetime, timedelta, UTC
 import sys
+import os
 
 
 
@@ -58,17 +59,7 @@ DATASET_ID = "cmems_mod_bal_wav_anfc_PT1H-i"
 
 # --- NOWE, ULTRA-SZYBKIE KESZOWANIE BLOKU DANYCH (-12h do +48h) ---
 @st.cache_data(show_spinner=False)
-def pobierz_pelny_blok_danych(odniesienie_czasu):
-    status = st.empty()
-    
-    # Pobieranie danych logowania z Secrets
-    try:
-        username = st.secrets["COPERNICUS_USERNAME"]
-        password = st.secrets["COPERNICUS_PASSWORD"]
-    except Exception as e:
-        st.error(f"Błąd odczytu st.secrets: {e}")
-        st.stop()
-    
+def pobierz_pelny_blok_danych(odniesienie_czasu, username, password):
     # Definiujemy ramy czasowe: 12 godzin w tył, 48 godzin w przód
     start_time = odniesienie_czasu - timedelta(hours=12)
     end_time = odniesienie_czasu + timedelta(hours=48)
@@ -76,43 +67,45 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     start_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
+    sciezka_tymczasowa = "temp_baltic_wave.nc"
+    
     try:
-        status.markdown(f"⏳ **Krok 1/3:** Otwieranie stabilnego połączenia NetCDF...<br><small>{DATASET_ID}</small>", unsafe_allow_html=True)
-        print(f"LOG: Wywoływanie open_dataset (NetCDF) dla {DATASET_ID}...", flush=True)
+        print(f"LOG: Wywoływanie copernicusmarine.subset dla {DATASET_ID}...", flush=True)
         
-        # Wymuszamy service="netcdf" aby ominąć błędy asynchronicznego pobierania zarr3
-        ds = copernicusmarine.open_dataset(
-            dataset_id=DATASET_ID, 
+        # Pobieramy fizyczny plik NetCDF
+        copernicusmarine.subset(
+            dataset_id=DATASET_ID,
             username=username,
             password=password,
-            start_datetime=start_str, 
+            start_datetime=start_str,
             end_datetime=end_str,
-            minimum_longitude=MIN_LON, 
+            minimum_longitude=MIN_LON,
             maximum_longitude=MAX_LON,
-            minimum_latitude=MIN_LAT, 
+            minimum_latitude=MIN_LAT,
             maximum_latitude=MAX_LAT,
             variables=["VHM0", "VTM02", "VMDR_WW"],
-            service="netcdf"
+            output_filename=sciezka_tymczasowa,
+            force_download=True
         )
         
-        status.markdown("⏳ **Krok 2/3:** Pobieranie i ładowanie struktur do pamięci RAM...")
-        print("LOG: open_dataset zakończone. Rozpoczynanie ds.load()...", flush=True)
+        print("LOG: Plik pobrany. Otwieranie lokalnego pliku przez xarray...", flush=True)
         
-        # Ładujemy cały przefiltrowany dataset bezpośrednio do RAMu serwera
-        ds_loaded = ds.load()
+        # Otwieramy pobrany fizycznie plik i natychmiast ładujemy go do RAM-u
+        with xr.open_dataset(sciezka_tymczasowa) as ds:
+            ds_loaded = ds.load()
         
-        status.markdown("⏳ **Krok 3/3:** Zamykanie strumieni sieciowych...")
-        print("LOG: ds.load() zakończone pomyślnie. Zamykanie obiektu...", flush=True)
-        ds.close()
+        print("LOG: Dane załadowane do RAM. Usuwanie pliku tymczasowego...", flush=True)
+        if os.path.exists(sciezka_tymczasowa):
+            os.remove(sciezka_tymczasowa)
         
-        status.empty() # Czyszczenie komunikatu po sukcesie
-        print("LOG: Pobieranie danych zakończone sukcesem.", flush=True)
+        print("LOG: Pobieranie i inicjalizacja danych zakończona sukcesem.", flush=True)
         return ds_loaded
+        
     except Exception as e:
-        print(f"LOG BŁĄD POBIERANIA: {e}", flush=True)
-        status.markdown(f"❌ **Błąd:** {e}")
-        st.error(f"Błąd pobierania bloku danych z Copernicus: {e}")
-        st.stop()
+        print(f"LOG BŁĄD PROCESU SUBSET: {e}", flush=True)
+        if os.path.exists(sciezka_tymczasowa):
+            os.remove(sciezka_tymczasowa)
+        raise e
 
 # --- INICJALIZACJA STANU SESJI (STATE) ---
 # Zaokrąglamy aktualny czas bazowy do pełnej godziny
@@ -125,8 +118,25 @@ if 'current_time' not in st.session_state:
 if 'prog_filtra' not in st.session_state:
     st.session_state.prog_filtra = 0.5
 
-# --- JEDNORAZOWE POBRANIE DUŻEGO BLOKU (idzie do cache na podstawie base_time) ---
-pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time)
+# --- JEDNORAZOWE POBRANIE DUŻEGO BLOKU ---
+# Pobieranie danych logowania z Secrets na poziomie głównym aplikacji
+try:
+    c_user = st.secrets["COPERNICUS_USERNAME"]
+    c_pass = st.secrets["COPERNICUS_PASSWORD"]
+except Exception as e:
+    st.error(f"Błąd odczytu st.secrets: {e}")
+    st.stop()
+
+# Interfejs statusu wyświetlany bezpiecznie poza funkcją cache
+status_placeholder = st.empty()
+status_placeholder.markdown(f"⏳ **Pobieranie danych z Copernicus Marine...**<br><small>Może to zająć do kilkunastu sekund</small>", unsafe_allow_html=True)
+
+try:
+    pelny_dataset = pobierz_pelny_blok_danych(st.session_state.base_time, c_user, c_pass)
+    status_placeholder.empty() # Usuń komunikat po udanym pobraniu
+except Exception as err:
+    status_placeholder.markdown(f"❌ **Błąd pobierania danych:** {err}")
+    st.stop()
 
 # --- BŁYSKAWICZNE WYCIĘCIE AKTUALNEY GODZINY Z RAMU ---
 wybrany_czas = st.session_state.current_time
