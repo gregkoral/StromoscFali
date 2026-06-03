@@ -77,15 +77,15 @@ try:
     # Wycinamy tylko jedną klatkę czasową z gotowego obiektu w pamięci
     wave_slice = pelny_dataset.sel(time=wybrany_czas, method='nearest')
 
-if "longitude" in wave_slice.coords:
-    lons_raw = wave_slice["longitude"].values
-else:
-    lons_raw = wave_slice["lon"].values
+    if "longitude" in wave_slice.coords:
+        lons_raw = wave_slice["longitude"].values
+    else:
+        lons_raw = wave_slice["lon"].values
 
-if "latitude" in wave_slice.coords:
-    lats_raw = wave_slice["latitude"].values
-else:
-    lats_raw = wave_slice["lat"].values
+    if "latitude" in wave_slice.coords:
+        lats_raw = wave_slice["latitude"].values
+    else:
+        lats_raw = wave_slice["lat"].values
 
     h_signif = wave_slice['VHM0'].values
     t_mean = wave_slice['VTM02'].values
