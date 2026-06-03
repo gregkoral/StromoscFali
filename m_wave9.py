@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, UTC
 
 st.write("Copernicus Toolbox:", copernicusmarine.__version__)
 st.set_page_config(page_title="Prognoza Fal Bałtyku", layout="centered")
-st.write("Dataset:", DATASET_ID)
+
 # --- USTAWIENIA DLA MORZA BAŁTYCKIEGO ---
 MIN_LON, MAX_LON = 11.0, 15.0
 MIN_LAT, MAX_LAT = 53.5, 56.5
