@@ -357,32 +357,53 @@ with st.expander("📊 Podsumowanie sesji", expanded=False):
     vhm0_valid  = h_signif[~np.isnan(h_signif)]
     vtm02_valid = t_mean[~np.isnan(t_mean)]
 
-    col_s1, col_s2 = st.columns(2)
-    with col_s1:
-        st.markdown("**VHM0 — Wysokość fali [m]**")
-        if vhm0_valid.size:
-            st.metric("Maks.",  f"{vhm0_valid.max():.2f} m")
-            st.metric("Śred.",  f"{vhm0_valid.mean():.2f} m")
-            st.metric("Min.",   f"{vhm0_valid.min():.2f} m")
-        else:
-            st.info("Brak danych w tym obszarze.")
-    with col_s2:
-        st.markdown("**VTM02 — Okres fali [s]**")
-        if vtm02_valid.size:
-            st.metric("Maks.",  f"{vtm02_valid.max():.2f} s")
-            st.metric("Śred.",  f"{vtm02_valid.mean():.2f} s")
-            st.metric("Min.",   f"{vtm02_valid.min():.2f} s")
-        else:
-            st.info("Brak danych w tym obszarze.")
+    def _stat(arr, jednostka):
+        if arr.size:
+            return (f"{arr.max():.2f} {jednostka}",
+                    f"{arr.mean():.2f} {jednostka}",
+                    f"{arr.min():.2f} {jednostka}")
+        return ("—", "—", "—")
 
-    st.markdown(
-        f"**Wyświetlany krok czasowy:** `{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC`  \n"
-        f"**Aktywny filtr:**  `≥ {st.session_state.prog_filtra:.1f} m`  \n"
-        f"**Zakres danych w cache:** "
-        f"`{st.session_state.base_time - timedelta(hours=12):%Y-%m-%d %H:%M}` → "
-        f"`{st.session_state.base_time + timedelta(hours=48):%Y-%m-%d %H:%M}` UTC  \n"
-        f"**Wersja Toolbox:** `copernicusmarine >= 2.0`"
-    )
+    v_max, v_avg, v_min = _stat(vhm0_valid, "m")
+    t_max, t_avg, t_min = _stat(vtm02_valid, "s")
+
+    zakres_od = (st.session_state.base_time - timedelta(hours=12)).strftime("%Y-%m-%d %H:%M")
+    zakres_do = (st.session_state.base_time + timedelta(hours=48)).strftime("%Y-%m-%d %H:%M")
+
+    st.markdown(f"""
+<style>
+.podsum td, .podsum th {{
+    padding: 2px 12px 2px 0;
+    font-size: 0.875rem;
+    vertical-align: top;
+}}
+.podsum th {{
+    font-weight: 600;
+    color: var(--text-color);
+    padding-bottom: 4px;
+}}
+.podsum td:first-child {{
+    color: #888;
+    white-space: nowrap;
+}}
+</style>
+<table class="podsum">
+  <tr>
+    <th></th>
+    <th>VHM0 — wysokość fali</th>
+    <th>VTM02 — okres fali</th>
+  </tr>
+  <tr><td>maks.</td> <td>{v_max}</td><td>{t_max}</td></tr>
+  <tr><td>śred.</td> <td>{v_avg}</td><td>{t_avg}</td></tr>
+  <tr><td>min.</td>  <td>{v_min}</td><td>{t_min}</td></tr>
+</table>
+<br>
+<span style="font-size:0.875rem">
+  <b>Krok czasowy:</b> {wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC &nbsp;|&nbsp;
+  <b>Filtr:</b> ≥ {st.session_state.prog_filtra:.1f} m &nbsp;|&nbsp;
+  <b>Cache:</b> {zakres_od} → {zakres_do} UTC
+</span>
+""", unsafe_allow_html=True)
 
 # ── 16. TRYB STANDALONE — CZEKA NA SPACJĘ ──────────────────────────────────────
 # Ten blok jest aktywny tylko gdy skrypt uruchamiany jest bezpośrednio przez
