@@ -54,7 +54,7 @@ def bezpieczne_logowanie():
     try:
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
-        # W API 2.0 logujemy się czystym zestawem login + hasło
+        # Logowanie standardowe dla API 2.0
         copernicusmarine.login(username=username, password=password)
     except Exception as e:
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
@@ -72,8 +72,8 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        # force_download=True zastępuje stary mechanizm czyszczenia błędnego cache chmury
-        ds = copernicusmarine.read_dataset(
+        # Używamy poprawnego open_dataset z parametrem czyszczenia cache metadanych w v2.0
+        ds = copernicusmarine.open_dataset(
             dataset_id=DATASET_ID, 
             start_datetime=start_str, 
             end_datetime=end_str,
@@ -82,16 +82,12 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             minimum_latitude=MIN_LAT, 
             maximum_latitude=MAX_LAT,
             variables=["VHM0", "VTM02", "VMDR_WW"],
-            force_download=True
+            overwrite_metadata_cache=True
         )
         
+        # Ładowanie danych do RAM serwera
         ds_loaded = ds.load()
         ds.close()
-        
-        return ds_loaded
-    except Exception as e:
-        st.error(f"Błąd pobierania bloku danych z Copernicus (API 2.0): {e}")
-        st.stop()
         
         return ds_loaded
     except Exception as e:
