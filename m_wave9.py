@@ -352,6 +352,7 @@ for ax, data, cmap, vmin, vmax, tytul in [
 fig2.tight_layout()
 st.pyplot(fig2)
 
+
 # ── 15. PODSUMOWANIE SESJI ─────────────────────────────────────────────────────
 with st.expander("📊 Podsumowanie sesji", expanded=False):
     vhm0_valid  = h_signif[~np.isnan(h_signif)]
@@ -404,42 +405,3 @@ with st.expander("📊 Podsumowanie sesji", expanded=False):
   <b>Cache:</b> {zakres_od} → {zakres_do} UTC
 </span>
 """, unsafe_allow_html=True)
-
-# # ── 16. TRYB STANDALONE — CZEKA NA SPACJĘ ──────────────────────────────────────
-# # Ten blok jest aktywny tylko gdy skrypt uruchamiany jest bezpośrednio przez
-# # Pythona (np. `python baltyk_fale.py`), nie przez `streamlit run`.
-# if __name__ == "__main__":
-    # import os
-
-    # # Sprawdź czy jesteśmy wewnątrz serwera Streamlit
-    # _w_streamlit = os.environ.get("STREAMLIT_SERVER_PORT") is not None
-
-    # if not _w_streamlit:
-        # print("\n" + "═" * 60)
-        # print("  Aplikacja gotowa do uruchomienia.")
-        # print("  Użyj: streamlit run baltyk_fale.py")
-        # print("═" * 60)
-        # print("\n  Naciśnij SPACJĘ + ENTER, aby zamknąć…\n")
-
-        # import termios, tty
-
-        # def _czekaj_na_spacje() -> None:
-            # fd   = sys.stdin.fileno()
-            # stare = termios.tcgetattr(fd)
-            # try:
-                # tty.setraw(fd)
-                # while True:
-                    # znak = sys.stdin.read(1)
-                    # if znak == " ":
-                        # break
-            # finally:
-                # termios.tcsetattr(fd, termios.TCSADRAIN, stare)
-
-        # try:
-            # _czekaj_na_spacje()
-        # except Exception:
-            # # Fallback dla środowisk bez TTY (Windows, IDE)
-            # input("  Naciśnij ENTER, aby zamknąć…")
-
-        # print("\n  Zamykanie…")
-        # sys.exit(0)
