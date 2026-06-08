@@ -157,9 +157,26 @@ def pobierz_pelny_blok_danych(odniesienie_czasu: datetime) -> xr.Dataset:
         st.stop()
 
 # ── 6. STAN SESJI ──────────────────────────────────────────────────────────────
+import pandas as pd
+
 def _teraz_utc_bez_minut() -> datetime:
-    """Aktualny czas UTC zaokrąglony do pełnej godziny (bez tzinfo — dla cache)."""
+    """Aktualny czas UTC zaokrąglony do pełnej godziny (timezone-naive — dla cache key)."""
     return datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
+
+def _do_pandas_ts(dt: datetime) -> "pd.Timestamp":
+    """
+    Konwertuje datetime (naive lub aware) na pd.Timestamp UTC.
+
+    Xarray po load() przechowuje czas jako numpy.datetime64[ns] — oś czasu
+    jest wtedy timezone-naive wewnętrznie, ale xarray indeksuje przez
+    pandas.Timestamp. Przekazanie pd.Timestamp("...", tz="UTC") sprawia,
+    że xarray automatycznie normalizuje TZ obu stron przed porównaniem
+    i sel(method='nearest') działa niezawodnie niezależnie od tego, czy
+    dataset ma tz-aware czy tz-naive oś czasu.
+    """
+    if dt.tzinfo is None:
+        return pd.Timestamp(dt, tz="UTC")
+    return pd.Timestamp(dt).tz_convert("UTC")
 
 if "base_time"    not in st.session_state:
     st.session_state.base_time    = _teraz_utc_bez_minut()
@@ -174,12 +191,32 @@ pelny_dataset: xr.Dataset = pobierz_pelny_blok_danych(st.session_state.base_time
 # ── 8. WYCIĘCIE WYBRANEGO KROKU CZASOWEGO ──────────────────────────────────────
 wybrany_czas: datetime = st.session_state.current_time
 
-try:
-    # sel() wymaga, by czas był zgodny z TZ dataset-u — dodajemy UTC jeśli brak
-    czas_sel = wybrany_czas.replace(tzinfo=UTC) if wybrany_czas.tzinfo is None \
-               else wybrany_czas.astimezone(UTC)
+# Sprawdź rzeczywisty zakres osi czasu w datasecie (do diagnostyki i ochrony)
+_t_min = pd.Timestamp(pelny_dataset.time.values[0]).tz_localize("UTC") \
+         if pd.Timestamp(pelny_dataset.time.values[0]).tzinfo is None \
+         else pd.Timestamp(pelny_dataset.time.values[0]).tz_convert("UTC")
+_t_max = pd.Timestamp(pelny_dataset.time.values[-1]).tz_localize("UTC") \
+         if pd.Timestamp(pelny_dataset.time.values[-1]).tzinfo is None \
+         else pd.Timestamp(pelny_dataset.time.values[-1]).tz_convert("UTC")
 
-    wave_slice = pelny_dataset.sel(time=czas_sel, method="nearest")
+_czas_sel = _do_pandas_ts(wybrany_czas)
+
+# Jeśli wybrany czas wykracza poza cache — pokaż diagnostykę i przycisk
+if not (_t_min <= _czas_sel <= _t_max):
+    st.error(
+        f"⚠️ Wybrana godzina **{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC** "
+        f"wykracza poza zakres pobranej pamięci podręcznej.\n\n"
+        f"Dostępny zakres: "
+        f"`{_t_min.strftime('%Y-%m-%d %H:%M')}` → `{_t_max.strftime('%Y-%m-%d %H:%M')}` UTC"
+    )
+    st.button(
+        "🔄 Zresetuj do teraz",
+        on_click=lambda: st.session_state.update(current_time=_teraz_utc_bez_minut()),
+    )
+    st.stop()
+
+try:
+    wave_slice = pelny_dataset.sel(time=_czas_sel, method="nearest")
 
     lons_raw  = wave_slice["longitude"].values
     lats_raw  = wave_slice["latitude"].values
@@ -188,12 +225,9 @@ try:
     vmdr_ww   = wave_slice["VMDR_WW"].values
 
 except Exception as e:
-    st.error(
-        f"Wybrana godzina ({wybrany_czas.strftime('%Y-%m-%d %H:%M')}) "
-        f"wykracza poza zakres pamięci podręcznej."
-    )
+    st.error(f"Błąd przy wyborze kroku czasowego: {e}")
     st.button(
-        "Zresetuj do teraz",
+        "🔄 Zresetuj do teraz",
         on_click=lambda: st.session_state.update(current_time=_teraz_utc_bez_minut()),
     )
     st.stop()
