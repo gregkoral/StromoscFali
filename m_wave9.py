@@ -163,20 +163,22 @@ def _teraz_utc_bez_minut() -> datetime:
     """Aktualny czas UTC zaokrąglony do pełnej godziny (timezone-naive — dla cache key)."""
     return datetime.now(UTC).replace(minute=0, second=0, microsecond=0, tzinfo=None)
 
-def _do_pandas_ts(dt: datetime) -> "pd.Timestamp":
+def _do_numpy_ts(dt: datetime) -> np.datetime64:
     """
-    Konwertuje datetime (naive lub aware) na pd.Timestamp UTC.
+    Konwertuje datetime na numpy.datetime64[ns] BEZ strefy czasowej.
 
-    Xarray po load() przechowuje czas jako numpy.datetime64[ns] — oś czasu
-    jest wtedy timezone-naive wewnętrznie, ale xarray indeksuje przez
-    pandas.Timestamp. Przekazanie pd.Timestamp("...", tz="UTC") sprawia,
-    że xarray automatycznie normalizuje TZ obu stron przed porównaniem
-    i sel(method='nearest') działa niezawodnie niezależnie od tego, czy
-    dataset ma tz-aware czy tz-naive oś czasu.
+    Problem: po copernicusmarine.open_dataset().load() oś czasu datasetu
+    ma dtype datetime64[ns] (tz-naive). Jeśli do sel() przekażemy obiekt
+    tz-aware (pd.Timestamp z UTC lub datetime64[us, UTC]), xarray rzuca:
+      'Cannot compare dtypes datetime64[ns] and datetime64[us, UTC]'
+    Rozwiązanie: zawsze konwertujemy wybrany czas do UTC, a następnie
+    usuwamy informację o strefie, by typy były identyczne.
     """
     if dt.tzinfo is None:
-        return pd.Timestamp(dt, tz="UTC")
-    return pd.Timestamp(dt).tz_convert("UTC")
+        ts = pd.Timestamp(dt, tz="UTC")
+    else:
+        ts = pd.Timestamp(dt).tz_convert("UTC")
+    return np.datetime64(ts.tz_localize(None), "ns")
 
 if "base_time"    not in st.session_state:
     st.session_state.base_time    = _teraz_utc_bez_minut()
@@ -191,23 +193,24 @@ pelny_dataset: xr.Dataset = pobierz_pelny_blok_danych(st.session_state.base_time
 # ── 8. WYCIĘCIE WYBRANEGO KROKU CZASOWEGO ──────────────────────────────────────
 wybrany_czas: datetime = st.session_state.current_time
 
-# Sprawdź rzeczywisty zakres osi czasu w datasecie (do diagnostyki i ochrony)
-_t_min = pd.Timestamp(pelny_dataset.time.values[0]).tz_localize("UTC") \
-         if pd.Timestamp(pelny_dataset.time.values[0]).tzinfo is None \
-         else pd.Timestamp(pelny_dataset.time.values[0]).tz_convert("UTC")
-_t_max = pd.Timestamp(pelny_dataset.time.values[-1]).tz_localize("UTC") \
-         if pd.Timestamp(pelny_dataset.time.values[-1]).tzinfo is None \
-         else pd.Timestamp(pelny_dataset.time.values[-1]).tz_convert("UTC")
+# Oś czasu datasetu jako numpy.datetime64[ns] naive — jednolity typ do porównań
+_t_min = np.datetime64(pd.Timestamp(pelny_dataset.time.values[0]).tz_localize(None)
+                       if pd.Timestamp(pelny_dataset.time.values[0]).tzinfo is not None
+                       else pd.Timestamp(pelny_dataset.time.values[0]), "ns")
+_t_max = np.datetime64(pd.Timestamp(pelny_dataset.time.values[-1]).tz_localize(None)
+                       if pd.Timestamp(pelny_dataset.time.values[-1]).tzinfo is not None
+                       else pd.Timestamp(pelny_dataset.time.values[-1]), "ns")
 
-_czas_sel = _do_pandas_ts(wybrany_czas)
+# Wybrany czas → ten sam typ (datetime64[ns] naive)
+_czas_sel = _do_numpy_ts(wybrany_czas)
 
 # Jeśli wybrany czas wykracza poza cache — pokaż diagnostykę i przycisk
 if not (_t_min <= _czas_sel <= _t_max):
+    _fmt = lambda t: pd.Timestamp(t).strftime("%Y-%m-%d %H:%M")
     st.error(
         f"⚠️ Wybrana godzina **{wybrany_czas.strftime('%Y-%m-%d %H:%M')} UTC** "
         f"wykracza poza zakres pobranej pamięci podręcznej.\n\n"
-        f"Dostępny zakres: "
-        f"`{_t_min.strftime('%Y-%m-%d %H:%M')}` → `{_t_max.strftime('%Y-%m-%d %H:%M')}` UTC"
+        f"Dostępny zakres: `{_fmt(_t_min)}` → `{_fmt(_t_max)}` UTC"
     )
     st.button(
         "🔄 Zresetuj do teraz",
