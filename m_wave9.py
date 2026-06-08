@@ -54,8 +54,8 @@ def bezpieczne_logowanie():
     try:
         username = st.secrets["COPERNICUS_USERNAME"]
         password = st.secrets["COPERNICUS_PASSWORD"]
-        # W API 2.0 zaleca się bezpośrednie przekazanie poświadczeń do konfiguracji globalnej lub sesji
-        copernicusmarine.login(username=username, password=password, force_cap_file_update=True)
+        # W API 2.0 logujemy się czystym zestawem login + hasło
+        copernicusmarine.login(username=username, password=password)
     except Exception as e:
         st.error(f"Błąd autoryzacji Copernicus: {e}. Sprawdź konfigurację Secrets.")
         st.stop()
@@ -72,8 +72,7 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
     end_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
     
     try:
-        # W API 2.0 poprawną metodą wczytywania siatek NetCDF/Xarray jako obiektów pamięciowych 
-        # jest copernicusmarine.read_dataset (zastąpiło open_dataset)
+        # force_download=True zastępuje stary mechanizm czyszczenia błędnego cache chmury
         ds = copernicusmarine.read_dataset(
             dataset_id=DATASET_ID, 
             start_datetime=start_str, 
@@ -82,12 +81,17 @@ def pobierz_pelny_blok_danych(odniesienie_czasu):
             maximum_longitude=MAX_LON,
             minimum_latitude=MIN_LAT, 
             maximum_latitude=MAX_LAT,
-            variables=["VHM0", "VTM02", "VMDR_WW"]
+            variables=["VHM0", "VTM02", "VMDR_WW"],
+            force_download=True
         )
         
-        # Wymuszamy załadowanie do RAMu i odcinamy od strumienia sieciowego
         ds_loaded = ds.load()
         ds.close()
+        
+        return ds_loaded
+    except Exception as e:
+        st.error(f"Błąd pobierania bloku danych z Copernicus (API 2.0): {e}")
+        st.stop()
         
         return ds_loaded
     except Exception as e:
