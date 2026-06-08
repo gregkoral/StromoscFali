@@ -405,41 +405,41 @@ with st.expander("📊 Podsumowanie sesji", expanded=False):
 </span>
 """, unsafe_allow_html=True)
 
-# ── 16. TRYB STANDALONE — CZEKA NA SPACJĘ ──────────────────────────────────────
-# Ten blok jest aktywny tylko gdy skrypt uruchamiany jest bezpośrednio przez
-# Pythona (np. `python baltyk_fale.py`), nie przez `streamlit run`.
-if __name__ == "__main__":
-    import os
+# # ── 16. TRYB STANDALONE — CZEKA NA SPACJĘ ──────────────────────────────────────
+# # Ten blok jest aktywny tylko gdy skrypt uruchamiany jest bezpośrednio przez
+# # Pythona (np. `python baltyk_fale.py`), nie przez `streamlit run`.
+# if __name__ == "__main__":
+    # import os
 
-    # Sprawdź czy jesteśmy wewnątrz serwera Streamlit
-    _w_streamlit = os.environ.get("STREAMLIT_SERVER_PORT") is not None
+    # # Sprawdź czy jesteśmy wewnątrz serwera Streamlit
+    # _w_streamlit = os.environ.get("STREAMLIT_SERVER_PORT") is not None
 
-    if not _w_streamlit:
-        print("\n" + "═" * 60)
-        print("  Aplikacja gotowa do uruchomienia.")
-        print("  Użyj: streamlit run baltyk_fale.py")
-        print("═" * 60)
-        print("\n  Naciśnij SPACJĘ + ENTER, aby zamknąć…\n")
+    # if not _w_streamlit:
+        # print("\n" + "═" * 60)
+        # print("  Aplikacja gotowa do uruchomienia.")
+        # print("  Użyj: streamlit run baltyk_fale.py")
+        # print("═" * 60)
+        # print("\n  Naciśnij SPACJĘ + ENTER, aby zamknąć…\n")
 
-        import termios, tty
+        # import termios, tty
 
-        def _czekaj_na_spacje() -> None:
-            fd   = sys.stdin.fileno()
-            stare = termios.tcgetattr(fd)
-            try:
-                tty.setraw(fd)
-                while True:
-                    znak = sys.stdin.read(1)
-                    if znak == " ":
-                        break
-            finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, stare)
+        # def _czekaj_na_spacje() -> None:
+            # fd   = sys.stdin.fileno()
+            # stare = termios.tcgetattr(fd)
+            # try:
+                # tty.setraw(fd)
+                # while True:
+                    # znak = sys.stdin.read(1)
+                    # if znak == " ":
+                        # break
+            # finally:
+                # termios.tcsetattr(fd, termios.TCSADRAIN, stare)
 
-        try:
-            _czekaj_na_spacje()
-        except Exception:
-            # Fallback dla środowisk bez TTY (Windows, IDE)
-            input("  Naciśnij ENTER, aby zamknąć…")
+        # try:
+            # _czekaj_na_spacje()
+        # except Exception:
+            # # Fallback dla środowisk bez TTY (Windows, IDE)
+            # input("  Naciśnij ENTER, aby zamknąć…")
 
-        print("\n  Zamykanie…")
-        sys.exit(0)
+        # print("\n  Zamykanie…")
+        # sys.exit(0)
