@@ -320,7 +320,7 @@ if col_t5.button("+6h",  use_container_width=True, key="btn_next6"):
     st.session_state.current_time += timedelta(hours=6);  st.rerun()
 
 # ── 13. PANEL STEROWANIA — FILTR WYSOKOŚCI ─────────────────────────────────────
-col_f1, col_f2, col_f3 = st.columns(3)
+col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns(5)
 
 if col_f1.button("-0.1m", use_container_width=True, key="btn_filtm"):
     st.session_state.prog_filtra = round(max(0.0, st.session_state.prog_filtra - 0.1), 1)
