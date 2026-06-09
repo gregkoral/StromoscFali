@@ -325,8 +325,17 @@ col_f1, col_f2, col_f3 = st.columns(3)
 if col_f1.button("-0.1 m", use_container_width=True, key="btn_filtm"):
     st.session_state.prog_filtra = round(max(0.0, st.session_state.prog_filtra - 0.1), 1)
     st.rerun()
-if col_f2.button("0.5 m",  use_container_width=True, key="btn_filt0"):
+
+if col_f2.button("0.0 m",  use_container_width=True, key="btn_filt00"):
+    st.session_state.prog_filtra = 0.0; st.rerun()
+
+if col_f2.button("0.5 m",  use_container_width=True, key="btn_filt05"):
     st.session_state.prog_filtra = 0.5; st.rerun()
+    
+if col_f2.button("1.0 m",  use_container_width=True, key="btn_filt10"):
+    st.session_state.prog_filtra = 1.0; st.rerun()
+
+    
 if col_f3.button("+0.1 m", use_container_width=True, key="btn_filtp"):
     st.session_state.prog_filtra = round(min(5.0, st.session_state.prog_filtra + 0.1), 1)
     st.rerun()
@@ -405,4 +414,3 @@ with st.expander("📊 Podsumowanie sesji", expanded=False):
   <b>Cache:</b> {zakres_od} → {zakres_do} UTC
 </span>
 """, unsafe_allow_html=True)
-
