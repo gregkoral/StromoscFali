@@ -329,14 +329,14 @@ if col_f1.button("-0.1m", use_container_width=True, key="btn_filtm"):
 if col_f2.button("0.0m",  use_container_width=True, key="btn_filt00"):
     st.session_state.prog_filtra = 0.0; st.rerun()
 
-if col_f2.button("0.5m",  use_container_width=True, key="btn_filt05"):
+if col_f3.button("0.5m",  use_container_width=True, key="btn_filt05"):
     st.session_state.prog_filtra = 0.5; st.rerun()
     
-if col_f2.button("1.0m",  use_container_width=True, key="btn_filt10"):
+if col_f4.button("1.0m",  use_container_width=True, key="btn_filt10"):
     st.session_state.prog_filtra = 1.0; st.rerun()
 
     
-if col_f3.button("+0.1m", use_container_width=True, key="btn_filtp"):
+if col_f5.button("+0.1m", use_container_width=True, key="btn_filtp"):
     st.session_state.prog_filtra = round(min(5.0, st.session_state.prog_filtra + 0.1), 1)
     st.rerun()
 
